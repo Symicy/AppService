@@ -1,0 +1,45 @@
+@import '../variables.css';
+
+.badge-kiva-individual {
+  background: var(--gradient-primary);
+  color: var(--kiva-black);
+  font-weight: bold;
+  font-family: var(--font-primary);
+}
+
+.badge-kiva-company {
+  background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+  color: var(--kiva-black);
+  font-weight: bold;
+  font-family: var(--font-primary);
+}
+
+/* Override Bootstrap badge colors for better visibility */
+.badge {
+  font-family: var(--font-primary);
+}
+
+.bg-secondary {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+.bg-warning {
+  background-color: #ffc107 !important;
+  color: #000000 !important;
+}
+
+.bg-info {
+  background-color: #0dcaf0 !important;
+  color: #000000 !important;
+}
+
+.bg-success {
+  background-color: #198754 !important;
+  color: white !important;
+}
+
+.bg-danger {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
