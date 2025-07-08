@@ -1,0 +1,59 @@
+@import '../variables.css';
+
+.form-control-kiva {
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid var(--kiva-cyan);
+  color: white;
+  font-family: var(--font-primary);
+}
+
+.form-control-kiva:focus {
+  background: rgba(26, 26, 26, 0.9);
+  border-color: var(--kiva-cyan);
+  box-shadow: var(--shadow-focus);
+  color: white;
+}
+
+.form-control-kiva::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-select-kiva {
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid var(--kiva-cyan);
+  color: white;
+  font-family: var(--font-primary);
+}
+
+.form-select-kiva:focus {
+  background: rgba(26, 26, 26, 0.9);
+  border-color: var(--kiva-cyan);
+  box-shadow: var(--shadow-focus);
+  color: white;
+}
+
+.form-select-kiva option {
+  background: var(--kiva-dark-1);
+  color: white;
+}
+
+.form-label {
+  color: var(--kiva-cyan) !important;
+  font-weight: bold;
+  font-family: var(--font-primary);
+}
+
+.dropdown-menu {
+  background: var(--kiva-dark-1) !important;
+  border: 1px solid var(--kiva-cyan) !important;
+}
+
+.dropdown-item {
+  color: white !important;
+  font-family: var(--font-primary);
+}
+
+.dropdown-item:hover {
+  background-color: var(--kiva-cyan) !important;
+  color: var(--kiva-black) !important;
+}

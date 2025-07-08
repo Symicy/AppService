@@ -1,0 +1,48 @@
+/* KIVA Service Manager CSS Variables */
+
+:root {
+  /* Brand Colors */
+  --kiva-cyan: #00ffff;
+  --kiva-blue: #0088cc;
+  --kiva-black: #000000;
+  --kiva-white: #ffffff;
+  
+  /* Dark Theme Colors */
+  --kiva-dark-1: #1a1a1a;
+  --kiva-dark-2: #2a2a2a;
+  --kiva-dark-3: #3a3a3a;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #00ffff 0%, #0088cc 100%);
+  --gradient-background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+  --gradient-card: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  
+  /* Shadows */
+  --shadow-cyan: 0 8px 25px rgba(0, 255, 255, 0.3);
+  --shadow-focus: 0 0 0 0.25rem rgba(0, 255, 255, 0.25);
+  
+  /* Typography */
+  --font-primary: 'Oxanium', sans-serif;
+  
+  /* Borders */
+  --border-cyan: 1px solid #00ffff;
+  --border-radius: 0.375rem;
+}
+
+/* Bootstrap Override Variables */
+.btn-primary {
+  --bs-btn-bg: var(--gradient-primary);
+  --bs-btn-border-color: var(--kiva-cyan);
+}
+
+.text-cyan {
+  color: var(--kiva-cyan) !important;
+}
+
+.bg-cyan {
+  background-color: var(--kiva-cyan) !important;
+}
+
+.border-cyan {
+  border-color: var(--kiva-cyan) !important;
+}

@@ -1,0 +1,38 @@
+@import '../variables.css';
+
+.kiva-logo {
+  height: 40px;
+  width: auto;
+  margin-right: 10px;
+}
+
+.navbar-brand {
+  font-family: var(--font-primary);
+  font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+  font-family: var(--font-primary);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--kiva-cyan) !important;
+}
+
+.navbar-nav .nav-link.text-cyan {
+  color: var(--kiva-cyan) !important;
+}
+
+.navbar-text {
+  font-family: var(--font-primary);
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: white !important;
+}
+
+.navbar-dark .navbar-nav .nav-link.text-cyan {
+  color: var(--kiva-cyan) !important;
+}
