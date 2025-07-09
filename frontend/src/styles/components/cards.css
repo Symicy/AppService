@@ -1,0 +1,125 @@
+@import '../variables.css';
+
+.card-kiva {
+  background: var(--gradient-card);
+  border: 1px solid var(--kiva-cyan);
+  color: white !important;
+}
+
+.card-kiva .card-title {
+  color: var(--kiva-cyan) !important;
+  font-family: var(--font-primary);
+}
+
+.card-kiva .card-text, .card-kiva p {
+  color: white !important;
+  font-family: var(--font-primary);
+}
+
+.card-kiva-dark {
+  background: linear-gradient(135deg, var(--kiva-dark-3) 0%, var(--kiva-dark-1) 100%);
+  border: 1px solid var(--kiva-cyan);
+  color: white !important;
+}
+
+.hover-card {
+  transition: all 0.3s ease-in-out;
+  background: var(--gradient-card) !important;
+  border: 1px solid var(--kiva-cyan) !important;
+  cursor: pointer;
+  color: white !important;
+}
+
+.hover-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-cyan);
+  border: 1px solid var(--kiva-cyan) !important;
+}
+
+.hover-card .card-body {
+  background: transparent !important;
+}
+
+.hover-card .card-title {
+  color: var(--kiva-cyan) !important;
+}
+
+.hover-card .card-text {
+  color: white !important;
+}
+
+.stats-card {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(0, 136, 204, 0.1) 100%);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  color: white !important;
+}
+
+.stats-card-cyan {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(0, 136, 204, 0.2) 100%);
+  border: 1px solid var(--kiva-cyan);
+  color: white !important;
+}
+
+.stats-card-cyan .card-title {
+  color: var(--kiva-cyan) !important;
+}
+
+.stats-card-success {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(25, 135, 84, 0.2) 100%);
+  border: 1px solid #28a745;
+  color: white !important;
+}
+
+.stats-card-warning {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 152, 0, 0.2) 100%);
+  border: 1px solid #ffc107;
+  color: white !important;
+}
+
+.stats-card-info {
+  background: linear-gradient(135deg, rgba(13, 202, 240, 0.2) 0%, rgba(25, 135, 84, 0.2) 100%);
+  border: 1px solid #0dcaf0;
+  color: white !important;
+}
+
+.metric-icon {
+  font-size: 2.5rem;
+  opacity: 0.8;
+}
+
+.chart-placeholder {
+  height: 200px;
+  background: linear-gradient(135deg, var(--kiva-dark-3) 0%, var(--kiva-dark-1) 100%);
+  border: 2px dashed var(--kiva-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kiva-cyan);
+  font-size: 1.2rem;
+  font-family: var(--font-primary);
+}
+
+/* Override Bootstrap card defaults */
+.card {
+  background: var(--gradient-card) !important;
+  border: 1px solid var(--kiva-cyan) !important;
+  color: white !important;
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--kiva-dark-2) 0%, var(--kiva-dark-1) 100%) !important;
+  border-bottom: 1px solid var(--kiva-cyan) !important;
+  color: var(--kiva-cyan) !important;
+}
+
+.card-body {
+  color: white !important;
+}
+
+.card-body h1, .card-body h2, .card-body h3, .card-body h4, .card-body h5, .card-body h6 {
+  color: white !important;
+}
+
+.card-body .text-cyan {
+  color: var(--kiva-cyan) !important;
+}

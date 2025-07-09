@@ -1,0 +1,102 @@
+@import '../variables.css';
+
+/* Force transparent/dark backgrounds for all table elements */
+.table-kiva,
+.table-kiva th,
+.table-kiva td,
+.table-kiva thead,
+.table-kiva tbody,
+.table-kiva tr {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.table-kiva {
+  color: white !important;
+  --bs-table-bg: transparent !important;
+  --bs-table-striped-bg: rgba(0, 255, 255, 0.05) !important;
+  --bs-table-hover-bg: rgba(0, 255, 255, 0.1) !important;
+  --bs-table-active-bg: rgba(0, 255, 255, 0.1) !important;
+}
+
+.table-kiva th {
+  background: linear-gradient(135deg, var(--kiva-dark-2) 0%, var(--kiva-dark-1) 100%) !important;
+  color: var(--kiva-cyan) !important;
+  border-bottom: 2px solid var(--kiva-cyan) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  font-weight: bold;
+  font-family: var(--font-primary);
+}
+
+.table-kiva td {
+  background: transparent !important;
+  color: white !important;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  font-family: var(--font-primary);
+}
+
+.table-kiva tbody tr:hover {
+  background: rgba(0, 255, 255, 0.1) !important;
+  --bs-table-accent-bg: rgba(0, 255, 255, 0.1) !important;
+}
+
+.table-kiva tbody tr:hover td {
+  background: transparent !important;
+  color: white !important;
+}
+
+/* Force text colors in tables */
+.table-kiva .text-white {
+  color: white !important;
+}
+
+.table-kiva .text-cyan {
+  color: var(--kiva-cyan) !important;
+}
+
+.table-kiva small {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.table-kiva strong {
+  color: inherit !important;
+}
+
+/* Table responsive wrapper */
+.table-responsive {
+  background: transparent !important;
+}
+
+/* Override Bootstrap's table variants */
+.table-striped > tbody > tr:nth-of-type(odd) > td,
+.table-striped > tbody > tr:nth-of-type(odd) > th {
+  background: rgba(0, 255, 255, 0.05) !important;
+}
+
+.table-hover > tbody > tr:hover > td,
+.table-hover > tbody > tr:hover > th {
+  background: rgba(0, 255, 255, 0.1) !important;
+}
+
+/* Force all Bootstrap table backgrounds to be transparent */
+.table > :not(caption) > * > * {
+  background: transparent !important;
+  border-color: rgba(0, 255, 255, 0.2) !important;
+}
+
+.table {
+  --bs-table-bg: transparent !important;
+  background: transparent !important;
+}
+
+/* Override any remaining Bootstrap table styles */
+.table th,
+.table td {
+  background-color: transparent !important;
+  background: transparent !important;
+}
