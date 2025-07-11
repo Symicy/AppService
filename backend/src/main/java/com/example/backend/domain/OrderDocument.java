@@ -36,7 +36,7 @@ public class OrderDocument {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    private Order orderId;
 
     @Column(name = "document_type", length = 50, nullable = false)
     private String documentType;

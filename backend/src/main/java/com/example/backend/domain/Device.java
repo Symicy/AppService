@@ -2,6 +2,8 @@ package com.example.backend.domain;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import jakarta.persistence.Column;
@@ -33,7 +35,7 @@ public class Device {
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
-    private Client client;
+    private Client clientId;
 
     @Column(name = "brand", length = 50)
     private String brand;
@@ -41,9 +43,10 @@ public class Device {
     @Column(name = "model", length = 50)
     private String model;
 
-    @Column(name = "serial_number", length = 50)
+    @Column(name = "serial_number", unique = true, length = 50)
     private String serialNumber;
 
+    @CreationTimestamp
     @Column(name = "received_date", nullable = false)
     private LocalDate receivedDate;
 
@@ -53,7 +56,11 @@ public class Device {
     @Column(name = "credential", length = 255)
     private String credential;
 
+    // License key for the device, if applicable
+    @Column(name = "license_key", length = 255)
+    private String licenseKey;
+
     @ManyToOne
     @JoinColumn(name = "order_id")
-    private Order order;
+    private Order orderId;
 }
