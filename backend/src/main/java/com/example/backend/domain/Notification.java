@@ -2,6 +2,8 @@ package com.example.backend.domain;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import jakarta.persistence.Column;
@@ -33,11 +35,12 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    private Order orderId;
     
     @Column(name = "message", length = 255, nullable = false)
     private String message;
 
+    @CreationTimestamp
     @Column(name = "send_date", nullable = false)
     private LocalDateTime sendDate;
 }

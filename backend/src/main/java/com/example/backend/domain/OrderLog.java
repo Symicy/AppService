@@ -36,11 +36,11 @@ public class OrderLog {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    private Order orderId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User userId;
 
     @Column(name = "message", length = 255, nullable = false)
     private String message;
