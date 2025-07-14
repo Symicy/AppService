@@ -22,7 +22,7 @@ public class NotificationService {
     private final NotificationRepo notificationRepo;
     
     public Notification addNotification(Notification notification) {
-        log.info("Adding new notification for order ID: {}", notification.getOrderId().getId());
+        log.info("Adding new notification for order ID: {}", notification.getOrder().getId());
         notification.setSendDate(LocalDateTime.now());
         return notificationRepo.save(notification);
     }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import jakarta.persistence.Column;
@@ -33,9 +34,9 @@ public class Device {
     @Column(name = "id", nullable = false, unique = true, updatable = false)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
-    private Client clientId;
+    // @ManyToOne
+    // @JoinColumn(name = "client_id", nullable = false)
+    // private Client client;
 
     @Column(name = "brand", length = 50)
     private String brand;
@@ -61,6 +62,7 @@ public class Device {
     private String licenseKey;
 
     @ManyToOne
+    @JsonBackReference("order-devices")
     @JoinColumn(name = "order_id")
-    private Order orderId;
+    private Order order;
 }

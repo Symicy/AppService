@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,12 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 public class DeviceResource {
     private final DeviceService deviceService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<Device> addDevice(@RequestBody Device device){
         return ResponseEntity.created(URI.create("api/devices/add/" + device.getId()))
                 .body(deviceService.addDevice(device));
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Device> getDevice(@PathVariable(value = "id") Long id) {
         return deviceService.getDeviceById(id)
@@ -41,11 +44,19 @@ public class DeviceResource {
                 .orElseGet(ResponseEntity.notFound()::build);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<Device>> getAllDevices() {
         return ResponseEntity.ok(deviceService.getAllDevices());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<List<Device>> getDevicesByOrder(@PathVariable(value = "orderId") Long orderId) {
+        return ResponseEntity.ok(deviceService.getDevicesByOrder(orderId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/serial/{serialNumber}")
     public ResponseEntity<Device> getDeviceBySerialNumber(@PathVariable(value = "serialNumber") String serialNumber) {
         return deviceService.getDeviceBySerialNumber(serialNumber)
@@ -53,12 +64,14 @@ public class DeviceResource {
                 .orElseGet(ResponseEntity.notFound()::build);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDevice(@PathVariable(value = "id") Long id) {
         deviceService.deleteDevice(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
     public ResponseEntity<Device> updateDevice(@PathVariable(value = "id") Long id,
                                                @RequestBody Device updatedDevice) {

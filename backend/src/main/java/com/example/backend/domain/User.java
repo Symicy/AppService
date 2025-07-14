@@ -7,6 +7,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.annotation.Generated;
 import jakarta.persistence.CascadeType;
@@ -46,6 +47,9 @@ public class User {
     @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
+    @Column(name = "phone", length = 15)
+    private String phone;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDate createdAt;
@@ -54,8 +58,10 @@ public class User {
     private String role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-orders")
     private List<Order> orders = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-orderLogs")
     private List<OrderLog> orderLogs = new ArrayList<>();
 }

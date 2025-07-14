@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,13 +27,15 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderDocumentResource {
     private final OrderDocumentService orderDocumentService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<OrderDocument> addOrderDocument(@RequestBody OrderDocument orderDocument) {
         return ResponseEntity.created(URI.create("/api/order-documents/add/" + orderDocument.getId()))
                 .body(orderDocumentService.addOrderDocument(orderDocument));
     }
 
-   @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}")
     public ResponseEntity<OrderDocument> getOrderDocument(@PathVariable(value = "id") Long id) {
         OrderDocument orderDocument = orderDocumentService.getOrderDocumentById(id);
         if (orderDocument != null) {
@@ -42,17 +45,20 @@ public class OrderDocumentResource {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<OrderDocument>> getAllOrderDocuments() {
         return ResponseEntity.ok(orderDocumentService.getAllOrderDocuments());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteOrderDocument(@PathVariable(value = "id") Long id) {
         orderDocumentService.deleteOrderDocument(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
     public ResponseEntity<OrderDocument> updateOrderDocument(@PathVariable(value = "id") Long id,
                                                             @RequestBody OrderDocument updatedOrderDocument) {
