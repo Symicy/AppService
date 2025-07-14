@@ -19,7 +19,7 @@ public class OrderService {
     private final OrderRepo orderRepo;
 
     public Order addOrder(Order order) {
-        log.info("Adding new order for client ID: {}", order.getClientId().getId());
+        log.info("Adding new order for client ID: {}", order.getClient().getId());
         return orderRepo.save(order);
     }
 
@@ -47,11 +47,11 @@ public class OrderService {
         log.info("Updating order with ID: {}", id);
         return orderRepo.findOrderById(id)
                 .map(order -> {
-                    if (updatedOrder.getClientId() != null) {
-                        order.setClientId(updatedOrder.getClientId());
+                    if (updatedOrder.getClient() != null) {
+                        order.setClient(updatedOrder.getClient());
                     }
-                    if (updatedOrder.getUserId() != null) {
-                        order.setUserId(updatedOrder.getUserId());
+                    if (updatedOrder.getUser() != null) {
+                        order.setUser(updatedOrder.getUser());
                     }
                     if (updatedOrder.getStatus() != null) {
                         order.setStatus(updatedOrder.getStatus());

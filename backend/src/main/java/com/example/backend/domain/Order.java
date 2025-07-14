@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,7 +32,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@Table(name = "order")
+@Table(name = "orders")
 public class Order {
     
     @Id
@@ -39,23 +41,29 @@ public class Order {
     private Long id;
 
     @ManyToOne
+    @JsonBackReference("client-orders")
     @JoinColumn(name = "client_id", nullable = false)
-    private Client clientId;
+    private Client client;
 
     @ManyToOne
+    @JsonBackReference("user-orders")
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Device> items = new ArrayList<>();
+    @JsonManagedReference("order-devices")
+    private List<Device> devices = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("order-documents")
     private List<OrderDocument> documents = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("order-notifications")
     private List<Notification> notifications = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("order-logs")
     private List<OrderLog> orderLogs = new ArrayList<>();
 
     @Column(name = "status", length = 50, nullable = false)

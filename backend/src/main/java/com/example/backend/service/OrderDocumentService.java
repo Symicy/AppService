@@ -20,7 +20,7 @@ public class OrderDocumentService {
     private final OrderDocumentRepo orderDocumentRepo;
 
     public OrderDocument addOrderDocument(OrderDocument orderDocument) {
-        log.info("Adding new order document for order ID: {}", orderDocument.getOrderId().getId());
+        log.info("Adding new order document for order ID: {}", orderDocument.getOrder().getId());
         return orderDocumentRepo.save(orderDocument);
     }
 
@@ -53,8 +53,8 @@ public class OrderDocumentService {
         log.info("Updating order document with ID: {}", id);
         return orderDocumentRepo.findById(id)
                 .map(document -> {
-                    if (updatedDocument.getOrderId() != null) {
-                        document.setOrderId(updatedDocument.getOrderId());
+                    if (updatedDocument.getOrder() != null) {
+                        document.setOrder(updatedDocument.getOrder());
                     }
                     if (updatedDocument.getDocumentType() != null) {
                         document.setDocumentType(updatedDocument.getDocumentType());

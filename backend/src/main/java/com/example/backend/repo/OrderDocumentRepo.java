@@ -10,6 +10,6 @@ import com.example.backend.domain.OrderDocument;
 
 public interface OrderDocumentRepo extends JpaRepository<OrderDocument, Long> {
     Optional<OrderDocument> findOrderDocumentById(Long id);
-    Optional<OrderDocument> findOrderDocumentByName(String name);
+    //Optional<OrderDocument> findOrderDocumentByName(String name);
     List<OrderDocument> findOrderDocumentByOrderId(Long orderId);
 }

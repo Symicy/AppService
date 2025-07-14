@@ -18,7 +18,7 @@ public class OrderLogService {
     private final OrderLogRepo orderLogRepo;
 
     public OrderLog addOrderLog(OrderLog orderLog) {
-        log.info("Adding new order log for order ID: {}", orderLog.getOrderId().getId());
+        log.info("Adding new order log for order ID: {}", orderLog.getOrder().getId());
         return orderLogRepo.save(orderLog);
     }
 
@@ -46,11 +46,11 @@ public class OrderLogService {
         log.info("Updating order log with ID: {}", id);
         return orderLogRepo.findById(id)
                 .map(orderLog -> {
-                    if (updatedOrderLog.getOrderId() != null) {
-                        orderLog.setOrderId(updatedOrderLog.getOrderId());
+                    if (updatedOrderLog.getOrder() != null) {
+                        orderLog.setOrder(updatedOrderLog.getOrder());
                     }
-                    if (updatedOrderLog.getUserId() != null) {
-                        orderLog.setUserId(updatedOrderLog.getUserId());
+                    if (updatedOrderLog.getUser() != null) {
+                        orderLog.setUser(updatedOrderLog.getUser());
                     }
                     if (updatedOrderLog.getMessage() != null) {
                         orderLog.setMessage(updatedOrderLog.getMessage());

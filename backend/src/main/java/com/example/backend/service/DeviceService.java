@@ -56,9 +56,9 @@ public class DeviceService {
                     if (updatedDevice.getModel() != null) {
                         device.setModel(updatedDevice.getModel());
                     }
-                    if (updatedDevice.getClientId() != null) {
-                        device.setClientId(updatedDevice.getClientId());
-                    }
+                    // if (updatedDevice.getClient() != null) {
+                    //     device.setClient(updatedDevice.getClient());
+                    // }
                     if (updatedDevice.getCredential() != null) {
                         device.setCredential(updatedDevice.getCredential());
                     }
@@ -82,10 +82,16 @@ public class DeviceService {
         return deviceRepo.findAll();
     }
 
-    public List<Device> getDevicesByClientId(Long clientId) {
-        log.info("Fetching devices for client ID: {}", clientId);
+    // public List<Device> getDevicesByClientId(Long clientId) {
+    //     log.info("Fetching devices for client ID: {}", clientId);
+    //     return deviceRepo.findAll().stream()
+    //             .filter(device -> device.getClient() != null && device.getClient().getId().equals(clientId))
+    //             .toList();
+    // }
+    public List<Device> getDevicesByOrder(Long orderId) {
+        log.info("Fetching devices for order ID: {}", orderId);
         return deviceRepo.findAll().stream()
-                .filter(device -> device.getClientId() != null && device.getClientId().getId().equals(clientId))
+                .filter(device -> device.getOrder() != null && device.getOrder().getId().equals(orderId))
                 .toList();
     }
     

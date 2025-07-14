@@ -55,6 +55,7 @@ public class UserService {
                     if (updatedUser.getPassword() != null) user.setPassword(updatedUser.getPassword());
                     if (updatedUser.getEmail() != null) user.setEmail(updatedUser.getEmail());
                     if (updatedUser.getRole() != null) user.setRole(updatedUser.getRole());
+                    if (updatedUser.getPhone() != null) user.setPhone(updatedUser.getPhone());
                     return userRepo.save(user);
                 })
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));

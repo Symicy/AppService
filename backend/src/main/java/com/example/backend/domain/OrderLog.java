@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import jakarta.annotation.Generated;
@@ -35,12 +36,14 @@ public class OrderLog {
     private Long id;
 
     @ManyToOne
+    @JsonBackReference("order-logs")
     @JoinColumn(name = "order_id", nullable = false)
-    private Order orderId;
+    private Order order;
 
     @ManyToOne
+    @JsonBackReference("user-orderLogs")
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @Column(name = "message", length = 255, nullable = false)
     private String message;
