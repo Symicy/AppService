@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import Orders from './components/Orders'
 import Dashboard from './components/Dashboard'
+import Users from './components/Users'
 import Login from './components/Login'
 import KivaLogo from './poze/3dlogo.png'
 import './App.css'
@@ -11,30 +14,43 @@ import './styles/components/buttons.css'
 import './styles/components/cards.css'
 import './styles/components/tables.css'
 
-// Home component (your current homepage)
+// Home component (your original homepage content)
 function Home() {
-  const [currentUser, setCurrentUser] = useState(null)
+  const { currentUser, logout, isLoading, authInitialized } = useAuth()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('kivaUser')
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser))
-    }
-  }, [])
-
-  const handleLogout = () => {
-    setCurrentUser(null)
-    localStorage.removeItem('kivaUser')
-  }
+  // Add this debug console log
+  console.log('🔍 Current User Debug:', {
+    user: currentUser,
+    role: currentUser?.role,
+    roleType: typeof currentUser?.role,
+    isAdmin: currentUser?.role === 'ADMIN',
+    isAdminLower: currentUser?.role === 'admin'
+  })
 
   const navigateToModule = (module) => {
     navigate(`/${module}`)
   }
 
-  if (!currentUser) {
-    return <Login setCurrentUser={setCurrentUser} />
+  // Show loading only if auth is not initialized yet
+  if (!authInitialized || isLoading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100" style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)'}}>
+        <div className="text-center">
+          <i className="fas fa-spinner fa-spin fa-3x text-cyan mb-3"></i>
+          <h4 className="text-white">Loading...</h4>
+        </div>
+      </div>
+    )
   }
+
+  // If no user after auth is initialized, this should not happen with ProtectedRoute
+  // but adding as safety net
+  if (!currentUser) {
+    return <Login />
+  }
+
+  const isAdmin = currentUser.role === 'ADMIN' || currentUser.role === 'admin'
 
   return (
     <div className="app-background">
@@ -50,7 +66,7 @@ function Home() {
               Welcome, {currentUser.fullName || currentUser.username} 
               <span className="badge ms-2" style={{background: '#00ffff', color: '#000000'}}>{currentUser.role}</span>
             </span>
-            <button className="btn btn-outline-light btn-sm" onClick={handleLogout} style={{borderColor: '#00ffff', color: '#00ffff'}}>
+            <button className="btn btn-outline-light btn-sm" onClick={logout} style={{borderColor: '#00ffff', color: '#00ffff'}}>
               <i className="fas fa-sign-out-alt me-2"></i>Sign Out
             </button>
           </div>
@@ -66,7 +82,7 @@ function Home() {
                 <span className="text-cyan">Service Management</span> <span className="text-white">HOME</span>
               </h1>
               <p className="lead mb-4 text-white">
-                Sefu' la bani
+                Welcome back, {currentUser.username}! {isAdmin && <span className="text-cyan">• Administrator Access</span>}
               </p>
             </div>
             <div className="col-lg-4 text-center">
@@ -88,7 +104,7 @@ function Home() {
         </div>
       </div>
 
-      {/* Main Modules */}
+      {/* Modules Section */}
       <div className="container py-5" style={{background: 'transparent'}}>
         <div className="text-center mb-5">
           <h2 className="fw-bold text-cyan">Modules</h2>
@@ -128,7 +144,7 @@ function Home() {
                 </div>
                 <h5 className="card-title fw-bold text-cyan">Service Orders</h5>
                 <p className="card-text text-white">
-                  Create, track, and manage service orders with PDF and QR codes
+                  Manage service requests, track progress, and update statuses
                 </p>
                 <button 
                   className="btn btn-kiva-outline"
@@ -143,6 +159,32 @@ function Home() {
             </div>
           </div>
 
+          {/* Users Module - Only for Admins */}
+          {isAdmin && (
+            <div className="col-md-6 col-lg-4">
+              <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('users')}>
+                <div className="card-body text-center p-4">
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'}}>
+                    <i className="fas fa-user-cog fa-2x text-white"></i>
+                  </div>
+                  <h5 className="card-title fw-bold text-cyan">User Management</h5>
+                  <p className="card-text text-white">
+                    Create and manage system users (Admin Only)
+                  </p>
+                  <button 
+                    className="btn btn-kiva-outline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigateToModule('users')
+                    }}
+                  >
+                    <i className="fas fa-user-cog me-2"></i>Manage Users
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Clients Module */}
           <div className="col-md-6 col-lg-4">
             <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('clients')}>
@@ -150,9 +192,9 @@ function Home() {
                 <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
                   <i className="fas fa-users fa-2x text-dark"></i>
                 </div>
-                <h5 className="card-title fw-bold text-cyan">Client Management</h5>
+                <h5 className="card-title fw-bold text-cyan">Clients</h5>
                 <p className="card-text text-white">
-                  Manage individual and corporate client information
+                  Manage client information and contact details
                 </p>
                 <button 
                   className="btn btn-kiva-outline"
@@ -174,9 +216,9 @@ function Home() {
                 <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
                   <i className="fas fa-laptop fa-2x text-dark"></i>
                 </div>
-                <h5 className="card-title fw-bold text-cyan">Device Registry</h5>
+                <h5 className="card-title fw-bold text-cyan">Devices</h5>
                 <p className="card-text text-white">
-                  Track and manage all devices in service
+                  Track and manage device inventory and specifications
                 </p>
                 <button 
                   className="btn btn-kiva-outline"
@@ -191,42 +233,16 @@ function Home() {
             </div>
           </div>
 
-          {/* Users Module - Admin Only */}
-          {currentUser.role === 'admin' && (
-            <div className="col-md-6 col-lg-4">
-              <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('users')}>
-                <div className="card-body text-center p-4">
-                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                    <i className="fas fa-user-cog fa-2x text-dark"></i>
-                  </div>
-                  <h5 className="card-title fw-bold text-cyan">User Management</h5>
-                  <p className="card-text text-white">
-                    Manage system users and access permissions
-                  </p>
-                  <button 
-                    className="btn btn-kiva-outline"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigateToModule('users')
-                    }}
-                  >
-                    <i className="fas fa-user-cog me-2"></i>Manage Users
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Reports Module */}
           <div className="col-md-6 col-lg-4">
             <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('reports')}>
               <div className="card-body text-center p-4">
                 <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                  <i className="fas fa-chart-bar fa-2x text-dark"></i>
+                  <i className="fas fa-file-alt fa-2x text-dark"></i>
                 </div>
                 <h5 className="card-title fw-bold text-cyan">Reports</h5>
                 <p className="card-text text-white">
-                  Generate and view detailed system reports
+                  Generate detailed reports and analytics
                 </p>
                 <button 
                   className="btn btn-kiva-outline"
@@ -235,40 +251,9 @@ function Home() {
                     navigateToModule('reports')
                   }}
                 >
-                  <i className="fas fa-chart-bar me-2"></i>View Reports
+                  <i className="fas fa-file-alt me-2"></i>View Reports
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="py-5" style={{background: 'linear-gradient(135deg, #1a1a1a 0%, #000000 100%)'}}>
-        <div className="container">
-          <div className="text-center mb-4">
-            <h3 className="fw-bold text-cyan">Quick Actions</h3>
-          </div>
-          <div className="row justify-content-center">
-            <div className="col-auto">
-              <button 
-                className="btn btn-kiva-primary btn-lg me-3"
-                onClick={() => navigateToModule('orders')}
-              >
-                <i className="fas fa-plus me-2"></i>New Order
-              </button>
-              <button 
-                className="btn btn-kiva-outline btn-lg me-3"
-                onClick={() => navigateToModule('clients')}
-              >
-                <i className="fas fa-user-plus me-2"></i>Add Client
-              </button>
-              <button 
-                className="btn btn-kiva-outline btn-lg"
-                onClick={() => navigateToModule('reports')}
-              >
-                <i className="fas fa-chart-line me-2"></i>Daily Report
-              </button>
             </div>
           </div>
         </div>
@@ -277,20 +262,89 @@ function Home() {
   )
 }
 
-// Main App with Router
+// Main App with Router and AuthProvider (keeping all your original routes)
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clients" element={<div style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', minHeight: '100vh', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><h2 className="text-cyan">Clients Coming Soon</h2></div>} />
-        <Route path="/devices" element={<div style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', minHeight: '100vh', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><h2 className="text-cyan">Devices Coming Soon</h2></div>} />
-        <Route path="/users" element={<div style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', minHeight: '100vh', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><h2 className="text-cyan">Users Coming Soon</h2></div>} />
-        <Route path="/reports" element={<div style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', minHeight: '100vh', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><h2 className="text-cyan">Reports Coming Soon</h2></div>} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public route */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* Protected routes - using your original structure but with ProtectedRoute wrapper */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/orders" element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          {/* Admin-only route */}
+          <Route path="/users" element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <Users />
+            </ProtectedRoute>
+          } />
+          
+          {/* Your original placeholder routes */}
+          <Route path="/clients" element={
+            <ProtectedRoute>
+              <div style={{
+                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', 
+                minHeight: '100vh', 
+                color: 'white', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}>
+                <h2 className="text-cyan">Clients Coming Soon</h2>
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/devices" element={
+            <ProtectedRoute>
+              <div style={{
+                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', 
+                minHeight: '100vh', 
+                color: 'white', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}>
+                <h2 className="text-cyan">Devices Coming Soon</h2>
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <div style={{
+                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', 
+                minHeight: '100vh', 
+                color: 'white', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}>
+                <h2 className="text-cyan">Reports Coming Soon</h2>
+              </div>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 

@@ -145,3 +145,38 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
 }
+
+.btn-kiva-login {
+  background: var(--gradient-primary);
+  border: none;
+  color: var(--kiva-black);
+  font-weight: bold;
+  font-family: var(--font-primary);
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-kiva-login:hover {
+  background: linear-gradient(135deg, var(--kiva-blue) 0%, var(--kiva-cyan) 100%);
+  color: var(--kiva-black);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-cyan);
+}
+
+.btn-kiva-login:disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-link.text-cyan {
+  color: var(--kiva-cyan) !important;
+  text-decoration: none;
+  font-family: var(--font-primary);
+}
+
+.btn-link.text-cyan:hover {
+  color: white !important;
+  text-decoration: underline;
+}
