@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,9 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 
+import com.example.backend.security.JwtUtil;
 import com.example.backend.domain.User;
+import com.example.backend.dto.JwtResponse;
 import com.example.backend.dto.LoginRequest;
+import com.example.backend.dto.RegisterResponse;
 import com.example.backend.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,23 +37,38 @@ import lombok.extern.slf4j.Slf4j;
 public class UserResource {
     private final UserService userService;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
-    public ResponseEntity<User> addUser(@RequestBody User user) {
-        return ResponseEntity.created(URI.create("/api/users/register/" + user.getId()))
-                .body(userService.registerUser(user));
+    public ResponseEntity<RegisterResponse> addUser(@RequestBody User user) {
+        User savedUser = userService.registerUser(user);
+
+        RegisterResponse response = new RegisterResponse();
+        response.setId(savedUser.getId());
+        response.setUsername(savedUser.getUsername());
+        response.setEmail(savedUser.getEmail());
+        response.setPhone(savedUser.getPhone());
+        response.setRole(savedUser.getRole());
+
+        return ResponseEntity.created(URI.create("/api/users/register/" + savedUser.getId()))
+                .body(response);
     }
 
     //@PreAuthorize("hasRole('ADMIN')")
+    // Exemplu de endpoint de login
     @PostMapping("/login")
-    public ResponseEntity<User> loginUser(@RequestBody LoginRequest loginRequest) {
-        try {
-            User loggedInUser = userService.loginUser(loginRequest.getUsername(), loginRequest.getPassword());
-            return ResponseEntity.ok(loggedInUser);
-        } catch (Exception e) {
-            log.error("Login failed for user: {}", loginRequest.getUsername(), e);
-            return ResponseEntity.status(401).build(); // Unauthorized
-        }
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtil.generateToken(loginRequest.getUsername());
+        return ResponseEntity.ok(new JwtResponse(jwt));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
