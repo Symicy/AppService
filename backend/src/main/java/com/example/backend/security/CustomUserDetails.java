@@ -17,7 +17,13 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+        // Make sure role has ROLE_ prefix for Spring Security
+        String role = user.getRole();
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
+        System.out.println("🔍 CustomUserDetails - User: " + user.getUsername() + " with authority: " + role);
+        return Collections.singletonList(new SimpleGrantedAuthority(role));
     }
 
     @Override
@@ -48,5 +54,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public User getUser() {
+        return user;
     }
 }
