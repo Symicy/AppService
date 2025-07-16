@@ -27,14 +27,37 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderResource {
     private final OrderService orderService;
 
+    // @PreAuthorize("hasRole('ADMIN')")
+    // @PostMapping("/add")
+    // public ResponseEntity<Order> addOrder(@RequestBody Order order) {
+    //     return ResponseEntity.created(URI.create("/api/orders/add/" + order.getId()))
+    //             .body(orderService.addOrder(order));
+    // }
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<Order> addOrder(@RequestBody Order order) {
-        return ResponseEntity.created(URI.create("/api/orders/add/" + order.getId()))
-                .body(orderService.addOrder(order));
+        Order savedOrder = orderService.addOrder(order);
+
+        // Generează link-ul pentru status comandă
+        //String qrLink = "http://localhost:5173/orders/" + savedOrder.getId();
+        String qrLink = "http://localhost:5173/orders/";
+
+        // Generează QR și salvează imaginea PNG într-un folder local
+        try {
+            String qrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\order-" + savedOrder.getId() + ".png";
+            com.example.backend.util.QrGenerator.generateQrCode(qrLink, qrPath);
+            // Poți salva calea imaginii QR în entitatea Order dacă vrei
+            // savedOrder.setQrPath(qrPath);
+            // orderService.updateOrder(savedOrder.getId(), savedOrder);
+        } catch (Exception e) {
+            log.error("Eroare la generarea codului QR pentru comanda {}", savedOrder.getId(), e);
+        }
+
+        return ResponseEntity.created(URI.create("/api/orders/add/" + savedOrder.getId()))
+                .body(savedOrder);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Order> getOrder(@PathVariable(value = "id") Long id) {
         return orderService.getOrderById(id)

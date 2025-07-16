@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.domain.User;
+import com.example.backend.dto.RegisterResponse;
 import com.example.backend.repo.UserRepo;
 
 import jakarta.transaction.Transactional;
@@ -31,6 +32,16 @@ public class UserService {
         return userRepo.save(user);
     }
 
+    public RegisterResponse mapToResponse(User user) {
+        RegisterResponse dto = new RegisterResponse();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setRole(user.getRole());
+        return dto;
+    }
+    
     public User loginUser(String username, String password)
     {
         log.info("Attempting to login user with username: {}", username);
