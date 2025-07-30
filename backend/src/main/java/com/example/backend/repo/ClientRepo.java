@@ -4,10 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.example.backend.domain.Client;
 
-public interface ClientRepo extends JpaRepository<Client, Long> {
+public interface ClientRepo extends JpaRepository<Client, Long>, JpaSpecificationExecutor<Client> {
     Optional<Client> findClientById(Long id);
     Optional<Client> findByEmail(String email);
     Optional<Client> findByCui(String cui);

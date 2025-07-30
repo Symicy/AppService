@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.annotation.Generated;
 import jakarta.persistence.Column;
@@ -51,4 +52,10 @@ public class OrderLog {
     @CreationTimestamp
     @Column(name = "timestamp", nullable = false, updatable = false)
     private LocalDateTime timestamp;
+    
+    // Adaugă această proprietate calculată
+    @JsonProperty("username")
+    public String getUsername() {
+        return user != null ? user.getUsername() : "System";
+    }
 }

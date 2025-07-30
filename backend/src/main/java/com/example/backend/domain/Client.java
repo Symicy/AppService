@@ -47,15 +47,11 @@ public class Client {
     @Column(name = "phone", length = 15)
     private String phone;
 
-    @Column(name = "type", length = 15)
+    @Column(name = "type", length = 50)
     private String type;
 
     @Column(name = "cui", length = 15)
     private String cui;
-
-    // @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // @JsonManagedReference
-    // private List<Device> devices = new ArrayList<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("client-orders")

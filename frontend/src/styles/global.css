@@ -244,3 +244,14 @@ tr {
   border-bottom: 1px solid var(--kiva-cyan) !important;
   color: var(--kiva-cyan) !important;
 }
+
+/* Adaugă aceste stiluri în fișierul CSS corespunzător */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable-header:hover {
+  background-color: rgba(0, 255, 255, 0.1);
+}
+

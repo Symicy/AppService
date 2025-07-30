@@ -3,10 +3,14 @@ package com.example.backend.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.domain.Client;
 import com.example.backend.repo.ClientRepo;
+import com.example.backend.specification.ClientSpecification;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -134,5 +138,20 @@ public class ClientService {
     public boolean clientExistsByEmail(String email) {
         log.info("Checking if client exists by email: {}", email);
         return clientRepo.existsByEmail(email);
+    }
+
+    public List<Client> getFilteredClients(String searchTerm, String type) {
+        log.info("Filtering clients with searchTerm: {}, type: {}", searchTerm, type);
+        
+        Specification<Client> spec = ClientSpecification.filterClients(searchTerm, type);
+        return clientRepo.findAll(spec);
+    }
+
+    public Page<Client> getFilteredPagedClients(String searchTerm, String type, Pageable pageable) {
+        log.info("Filtering paged clients: searchTerm={}, type={}, page={}, size={}", 
+                 searchTerm, type, pageable.getPageNumber(), pageable.getPageSize());
+        
+        Specification<Client> spec = ClientSpecification.filterClients(searchTerm, type);
+        return clientRepo.findAll(spec, pageable);
     }
 }

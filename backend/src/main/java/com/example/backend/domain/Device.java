@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,10 +35,6 @@ public class Device {
     @Column(name = "id", nullable = false, unique = true, updatable = false)
     private Long id;
 
-    // @ManyToOne
-    // @JoinColumn(name = "client_id", nullable = false)
-    // private Client client;
-
     @Column(name = "brand", length = 50)
     private String brand;
 
@@ -57,6 +54,9 @@ public class Device {
     @Column(name = "credential", length = 255)
     private String credential;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
     // License key for the device, if applicable
     @Column(name = "license_key", length = 255)
     private String licenseKey;
@@ -65,4 +65,9 @@ public class Device {
     @JsonBackReference("order-devices")
     @JoinColumn(name = "order_id")
     private Order order;
+
+    @JsonProperty("order_id")
+    public Long getOrderId() {
+        return order != null ? order.getId() : null;
+    }
 }

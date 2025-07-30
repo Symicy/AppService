@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.service.ClientService;
@@ -19,6 +20,10 @@ import com.example.backend.domain.Client;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @RestController
@@ -83,5 +88,27 @@ public class ClientResource {
         return ResponseEntity.noContent().build();
     }
 
-    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/filter")
+    public ResponseEntity<Page<Client>> getFilteredClients(
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false, defaultValue = "all") String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        log.info("Received paginated filter request: search={}, type={}, page={}, size={}", 
+                 searchTerm, type, page, size);
+                 
+        Pageable pageable = PageRequest.of(
+            page, 
+            size, 
+            sortDir.equalsIgnoreCase("asc") ? 
+                Sort.by(sortBy).ascending() : 
+                Sort.by(sortBy).descending()
+        );
+        
+        return ResponseEntity.ok(clientService.getFilteredPagedClients(searchTerm, type, pageable));
+    }
 }

@@ -47,6 +47,14 @@ public class OrderLogResource {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/by-order/{orderId}")
+    public ResponseEntity<List<OrderLog>> getOrderLogsByOrderId(@PathVariable("orderId") Long orderId) {
+        log.info("Fetching logs for order ID: {}", orderId);
+        List<OrderLog> logs = orderLogService.getOrdersLogsByOrderId(orderId);
+        return ResponseEntity.ok(logs);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
     public ResponseEntity<OrderLog> updateOrderLog(@PathVariable("id") Long id,
                                                    @RequestBody OrderLog updatedOrderLog) {

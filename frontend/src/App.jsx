@@ -6,6 +6,8 @@ import Orders from './components/Orders'
 import Dashboard from './components/Dashboard'
 import Users from './components/Users'
 import Login from './components/Login'
+import Clients from './components/Clients'
+import Devices from './components/Devices'
 import KivaLogo from './poze/3dlogo.png'
 import './App.css'
 import './styles/global.css'
@@ -300,31 +302,13 @@ function App() {
           {/* Your original placeholder routes */}
           <Route path="/clients" element={
             <ProtectedRoute>
-              <div style={{
-                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', 
-                minHeight: '100vh', 
-                color: 'white', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center'
-              }}>
-                <h2 className="text-cyan">Clients Coming Soon</h2>
-              </div>
+              <Clients/>
             </ProtectedRoute>
           } />
           
           <Route path="/devices" element={
             <ProtectedRoute>
-              <div style={{
-                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', 
-                minHeight: '100vh', 
-                color: 'white', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center'
-              }}>
-                <h2 className="text-cyan">Devices Coming Soon</h2>
-              </div>
+              <Devices />
             </ProtectedRoute>
           } />
           

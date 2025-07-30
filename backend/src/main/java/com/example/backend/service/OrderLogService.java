@@ -1,6 +1,8 @@
 package com.example.backend.service;
 
+import com.example.backend.domain.Order;
 import com.example.backend.domain.OrderLog;
+import com.example.backend.domain.User;
 import com.example.backend.repo.OrderLogRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +61,13 @@ public class OrderLogService {
                     return orderLogRepo.save(orderLog);
                 })
                 .orElseThrow(() -> new RuntimeException("Order log not found with ID: " + id));
+    }
+
+    public OrderLog createOrderLog(Order order, User user, String message) {
+        OrderLog log = new OrderLog();
+        log.setOrder(order);
+        log.setUser(user);
+        log.setMessage(message);
+        return addOrderLog(log);
     }
 }
