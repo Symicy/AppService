@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -72,4 +73,19 @@ public class Order {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDate createdAt;
+
+    @JsonProperty("clientId")
+    public Long getClientId() {
+        return client != null ? client.getId() : null;
+    }
+
+    @JsonProperty("clientName")
+    public String getClientName() {
+        return client != null ? client.getName() + " " + client.getSurname() : null;
+    }
+
+    @JsonProperty("userId") 
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
 }

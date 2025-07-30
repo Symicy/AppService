@@ -2,6 +2,7 @@ package com.example.backend.resource;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
@@ -76,5 +77,19 @@ public class DeviceResource {
     public ResponseEntity<Device> updateDevice(@PathVariable(value = "id") Long id,
                                                @RequestBody Device updatedDevice) {
         return ResponseEntity.ok(deviceService.updateDevice(id, updatedDevice));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Device> updateDeviceStatus(
+            @PathVariable(value = "id") Long id,
+            @RequestBody Map<String, String> statusUpdate) {
+        
+        String newStatus = statusUpdate.get("status");
+        if (newStatus == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        return ResponseEntity.ok(deviceService.updateDeviceStatus(id, newStatus));
     }
 }
