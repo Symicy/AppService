@@ -15,11 +15,17 @@ import './styles/components/navbar.css'
 import './styles/components/buttons.css'
 import './styles/components/cards.css'
 import './styles/components/tables.css'
+import * as clientsAPI from './services/api/clientsAPI';
+import * as ordersAPI from './services/api/ordersAPI';
 
 // Home component (your original homepage content)
 function Home() {
-  const { currentUser, logout, isLoading, authInitialized } = useAuth()
-  const navigate = useNavigate()
+  const { currentUser, logout, isLoading, authInitialized } = useAuth();
+  const navigate = useNavigate();
+  // Adaugă state pentru statistici
+  const [clientCount, setClientCount] = useState(0);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   // Add this debug console log
   console.log('🔍 Current User Debug:', {
@@ -28,11 +34,37 @@ function Home() {
     roleType: typeof currentUser?.role,
     isAdmin: currentUser?.role === 'ADMIN',
     isAdminLower: currentUser?.role === 'admin'
-  })
+  });
 
   const navigateToModule = (module) => {
-    navigate(`/${module}`)
-  }
+    navigate(`/${module}`);
+  };
+
+  // Adaugă useEffect pentru a încărca statisticile când componenta se montează
+  useEffect(() => {
+    const fetchStats = async () => {
+      setIsLoadingStats(true);
+      try {
+        // Obține numărul de clienți
+        const clientsCount = await clientsAPI.getNumberOfClients();
+        setClientCount(clientsCount);
+        console.log('✅ Loaded client count:', clientsCount);
+        
+        // Obține numărul de comenzi active
+        const ordersCount = await ordersAPI.fetchActiveOrdersCount();
+        setActiveOrdersCount(ordersCount);
+        console.log('✅ Loaded active orders count:', ordersCount);
+      } catch (error) {
+        console.error('❌ Failed to load stats:', error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    if (currentUser) {
+      fetchStats();
+    }
+  }, [currentUser]);
 
   // Show loading only if auth is not initialized yet
   if (!authInitialized || isLoading) {
@@ -92,12 +124,32 @@ function Home() {
                 <h3 className="text-cyan">Quick Stats</h3>
                 <div className="row text-center">
                   <div className="col-6">
-                    <h4 className="text-white">23</h4>
-                    <small className="text-cyan">Active Orders</small>
+                    {isLoadingStats ? (
+                      <div className="d-flex align-items-center justify-content-center">
+                        <div className="spinner-border spinner-border-sm text-cyan" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h4 className="text-white">{activeOrdersCount}</h4>
+                        <small className="text-cyan">Active Orders</small>
+                      </>
+                    )}
                   </div>
                   <div className="col-6">
-                    <h4 className="text-white">156</h4>
-                    <small className="text-cyan">Total Clients</small>
+                    {isLoadingStats ? (
+                      <div className="d-flex align-items-center justify-content-center">
+                        <div className="spinner-border spinner-border-sm text-cyan" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h4 className="text-white">{clientCount}</h4>
+                        <small className="text-cyan">Total Clients</small>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -112,150 +164,116 @@ function Home() {
           <h2 className="fw-bold text-cyan">Modules</h2>
         </div>
 
-        <div className="row g-4">
+        <div className="modules-grid">
           {/* Dashboard Module */}
-          <div className="col-md-6 col-lg-4">
-            <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('dashboard')}>
-              <div className="card-body text-center p-4">
-                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                  <i className="fas fa-chart-line fa-2x text-dark"></i>
-                </div>
-                <h5 className="card-title fw-bold text-cyan">Dashboard</h5>
-                <p className="card-text text-white">
-                  View analytics, reports, and key performance indicators
-                </p>
-                <button 
-                  className="btn btn-kiva-outline"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigateToModule('dashboard')
-                  }}
-                >
-                  <i className="fas fa-chart-line me-2"></i>Open Dashboard
-                </button>
+          <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('dashboard')}>
+            <div className="card-body text-center p-4">
+              <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
+                <i className="fas fa-chart-line fa-2x text-dark"></i>
               </div>
+              <h5 className="card-title fw-bold text-cyan">Dashboard</h5>
+              <p className="card-text text-white">
+                View analytics, reports, and key performance indicators
+              </p>
+              <button 
+                className="btn btn-kiva-outline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigateToModule('dashboard')
+                }}
+              >
+                <i className="fas fa-chart-line me-2"></i>Open Dashboard
+              </button>
             </div>
           </div>
 
           {/* Orders Module */}
-          <div className="col-md-6 col-lg-4">
-            <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('orders')}>
-              <div className="card-body text-center p-4">
-                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                  <i className="fas fa-clipboard-list fa-2x text-dark"></i>
-                </div>
-                <h5 className="card-title fw-bold text-cyan">Service Orders</h5>
-                <p className="card-text text-white">
-                  Manage service requests, track progress, and update statuses
-                </p>
-                <button 
-                  className="btn btn-kiva-outline"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigateToModule('orders')
-                  }}
-                >
-                  <i className="fas fa-clipboard-list me-2"></i>Manage Orders
-                </button>
+          <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('orders')}>
+            <div className="card-body text-center p-4">
+              <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
+                <i className="fas fa-clipboard-list fa-2x text-dark"></i>
               </div>
+              <h5 className="card-title fw-bold text-cyan">Service Orders</h5>
+              <p className="card-text text-white">
+                Manage service requests, track progress, and update statuses
+              </p>
+              <button 
+                className="btn btn-kiva-outline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigateToModule('orders')
+                }}
+              >
+                <i className="fas fa-clipboard-list me-2"></i>Manage Orders
+              </button>
             </div>
           </div>
 
           {/* Users Module - Only for Admins */}
           {isAdmin && (
-            <div className="col-md-6 col-lg-4">
-              <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('users')}>
-                <div className="card-body text-center p-4">
-                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'}}>
-                    <i className="fas fa-user-cog fa-2x text-white"></i>
-                  </div>
-                  <h5 className="card-title fw-bold text-cyan">User Management</h5>
-                  <p className="card-text text-white">
-                    Create and manage system users (Admin Only)
-                  </p>
-                  <button 
-                    className="btn btn-kiva-outline"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigateToModule('users')
-                    }}
-                  >
-                    <i className="fas fa-user-cog me-2"></i>Manage Users
-                  </button>
+            <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('users')}>
+              <div className="card-body text-center p-4">
+                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'}}>
+                  <i className="fas fa-user-cog fa-2x text-white"></i>
                 </div>
+                <h5 className="card-title fw-bold text-cyan">User Management</h5>
+                <p className="card-text text-white">
+                  Create and manage system users (Admin Only)
+                </p>
+                <button 
+                  className="btn btn-kiva-outline"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateToModule('users')
+                  }}
+                >
+                  <i className="fas fa-user-cog me-2"></i>Manage Users
+                </button>
               </div>
             </div>
           )}
 
           {/* Clients Module */}
-          <div className="col-md-6 col-lg-4">
-            <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('clients')}>
-              <div className="card-body text-center p-4">
-                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                  <i className="fas fa-users fa-2x text-dark"></i>
-                </div>
-                <h5 className="card-title fw-bold text-cyan">Clients</h5>
-                <p className="card-text text-white">
-                  Manage client information and contact details
-                </p>
-                <button 
-                  className="btn btn-kiva-outline"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigateToModule('clients')
-                  }}
-                >
-                  <i className="fas fa-users me-2"></i>Manage Clients
-                </button>
+          <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('clients')}>
+            <div className="card-body text-center p-4">
+              <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
+                <i className="fas fa-users fa-2x text-dark"></i>
               </div>
+              <h5 className="card-title fw-bold text-cyan">Clients</h5>
+              <p className="card-text text-white">
+                Manage client information and contact details
+              </p>
+              <button 
+                className="btn btn-kiva-outline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigateToModule('clients')
+                }}
+              >
+                <i className="fas fa-users me-2"></i>Manage Clients
+              </button>
             </div>
           </div>
 
           {/* Devices Module */}
-          <div className="col-md-6 col-lg-4">
-            <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('devices')}>
-              <div className="card-body text-center p-4">
-                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                  <i className="fas fa-laptop fa-2x text-dark"></i>
-                </div>
-                <h5 className="card-title fw-bold text-cyan">Devices</h5>
-                <p className="card-text text-white">
-                  Track and manage device inventory and specifications
-                </p>
-                <button 
-                  className="btn btn-kiva-outline"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigateToModule('devices')
-                  }}
-                >
-                  <i className="fas fa-laptop me-2"></i>Manage Devices
-                </button>
+          <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('devices')}>
+            <div className="card-body text-center p-4">
+              <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
+                <i className="fas fa-laptop fa-2x text-dark"></i>
               </div>
-            </div>
-          </div>
-
-          {/* Reports Module */}
-          <div className="col-md-6 col-lg-4">
-            <div className="card h-100 shadow-sm border-0 hover-card" onClick={() => navigateToModule('reports')}>
-              <div className="card-body text-center p-4">
-                <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)'}}>
-                  <i className="fas fa-file-alt fa-2x text-dark"></i>
-                </div>
-                <h5 className="card-title fw-bold text-cyan">Reports</h5>
-                <p className="card-text text-white">
-                  Generate detailed reports and analytics
-                </p>
-                <button 
-                  className="btn btn-kiva-outline"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigateToModule('reports')
-                  }}
-                >
-                  <i className="fas fa-file-alt me-2"></i>View Reports
-                </button>
-              </div>
+              <h5 className="card-title fw-bold text-cyan">Devices</h5>
+              <p className="card-text text-white">
+                Track and manage device inventory and specifications
+              </p>
+              <button 
+                className="btn btn-kiva-outline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigateToModule('devices')
+                }}
+              >
+                <i className="fas fa-laptop me-2"></i>Manage Devices
+              </button>
             </div>
           </div>
         </div>
@@ -309,21 +327,6 @@ function App() {
           <Route path="/devices" element={
             <ProtectedRoute>
               <Devices />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <div style={{
-                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', 
-                minHeight: '100vh', 
-                color: 'white', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center'
-              }}>
-                <h2 className="text-cyan">Reports Coming Soon</h2>
-              </div>
             </ProtectedRoute>
           } />
         </Routes>

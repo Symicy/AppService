@@ -163,6 +163,63 @@ export async function updateDeviceStatus(deviceId, status) {
   }
 }
 
+/**
+ * Obține toate accesoriile predefinite disponibile
+ * @returns {Promise<Array>} Lista accesoriilor predefinite
+ */
+export async function getAllPredefinedAccessories() {
+  try {
+    console.log('📋 Fetching predefined accessories');
+    const response = await apiClient.get('/accessories/predefined');
+    console.log('✅ Predefined accessories fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching predefined accessories:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * Actualizează accesoriile unui dispozitiv
+ * @param {number} deviceId ID-ul dispozitivului
+ * @param {Array<string>} predefinedAccessories Lista accesoriilor predefinite selectate
+ * @param {string} customAccessories Accesoriile personalizate
+ * @returns {Promise<Object>} Dispozitivul actualizat
+ */
+export async function updateDeviceAccessories(deviceId, predefinedAccessories, customAccessories) {
+  try {
+    console.log(`🔄 Updating accessories for device #${deviceId}`);
+    const payload = {
+      predefinedAccessories: predefinedAccessories || [],
+      customAccessories: customAccessories || ''
+    };
+    const response = await apiClient.put(`/${deviceId}/accessories`, payload);
+    console.log('✅ Device accessories updated successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Error updating accessories for device #${deviceId}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * Actualizează ToDo-ul unui dispozitiv
+ * @param {number} deviceId ID-ul dispozitivului
+ * @param {string} toDo ToDo-ul dispozitivului
+ * @returns {Promise<Object>} Dispozitivul actualizat
+ */
+export async function updateDeviceToDo(deviceId, toDo) {
+  try {
+    console.log(`🔄 Updating ToDo for device #${deviceId}`);
+    const response = await apiClient.put(`/${deviceId}`, { toDo: toDo });
+    console.log('✅ Device ToDo updated successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Error updating ToDo for device #${deviceId}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
 export default {
   fetchAllDevices,
   getDeviceById,
@@ -171,5 +228,8 @@ export default {
   addDevice,
   updateDevice,
   deleteDevice,
-  updateDeviceStatus
+  updateDeviceStatus,
+  getAllPredefinedAccessories,
+  updateDeviceAccessories,
+  updateDeviceToDo
 };

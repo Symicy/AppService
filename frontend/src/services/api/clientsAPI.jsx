@@ -159,6 +159,16 @@ export const fetchFilteredClients = async (searchTerm, type, page = 0, size = 10
   }
 };
 
+export const getNumberOfClients = async () => {
+  try {
+    const response = await apiClient.get('/nrClients');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching number of clients:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 export default {
   fetchAllClients,
   addClient,
@@ -166,5 +176,6 @@ export default {
   deleteClient,
   getClientById,
   getClientsByType,
-  fetchFilteredClients
+  fetchFilteredClients,
+  getNumberOfClients
 };

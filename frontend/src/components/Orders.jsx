@@ -46,8 +46,13 @@ function Orders() {
     note: '',
     credential: '',
     licenseKey: '',
-    status: 'PRELUAT'
+    status: 'PRELUAT',
+    predefinedAccessories: [],
+    customAccessories: '',
+    toDo: ''
   });
+
+  const [predefinedAccessories, setPredefinedAccessories] = useState([]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -105,6 +110,12 @@ function Orders() {
       return;
     }
 
+    // Validare pentru credential
+    if (!newDevice.credential || newDevice.credential.trim() === '') {
+      setError('Credential is required for all devices');
+      return;
+    }
+
     // Adaugă dispozitiv nou la lista de dispozitive a comenzii
     setNewOrderForm({
       ...newOrderForm,
@@ -122,7 +133,10 @@ function Orders() {
       note: '',
       credential: '',
       licenseKey: '',
-      status: 'PRELUAT'
+      status: 'PRELUAT',
+      predefinedAccessories: [],
+      customAccessories: '',
+      toDo: ''
     });
     
     console.log('✅ Device added to order form');
@@ -163,6 +177,13 @@ function Orders() {
               setClients(clientsData);
               clientsLoadedRef.current = true;
               console.log(`✅ ${clientsData.length} clients loaded silently in background`);
+              
+              // Load predefined accessories as well
+              console.log('🔄 Loading predefined accessories...');
+              const accessories = await devicesAPI.getAllPredefinedAccessories();
+              setPredefinedAccessories(accessories);
+              console.log(`✅ ${accessories.length} predefined accessories loaded`);
+              
             } catch (error) {
               console.error('❌ Error loading clients in background:', error);
               // Nu setăm nicio eroare vizibilă deoarece se încarcă în background
@@ -770,8 +791,13 @@ const handleMarkAsDelivered = async () => {
                   <tbody>
                     {orders.length > 0 ? (
                       orders.map(order => (
-                        <tr key={order.id}>
-                          <td>
+                        <tr 
+                          key={order.id}
+                          className="cursor-pointer"
+                          onClick={() => openDetailsModal(order)}
+                          title="Click to view order details"
+                        >
+                          <td onClick={(e) => e.stopPropagation()}>
                             <strong className="text-cyan">{order.id}</strong>
                           </td>
                           <td>
@@ -788,7 +814,7 @@ const handleMarkAsDelivered = async () => {
                           <td>
                             {getStatusBadge(order.status)}
                           </td>
-                          <td>
+                          <td onClick={(e) => e.stopPropagation()}>
                             <div className="btn-group btn-group-sm" role="group">
                               <button 
                                 className="btn btn-kiva-action"
@@ -986,6 +1012,8 @@ const handleMarkAsDelivered = async () => {
                                     <th>Brand</th>
                                     <th>Model</th>
                                     <th>Serial Number</th>
+                                    <th>ToDo</th>
+                                    <th>Accessories</th>
                                     <th>Note</th>
                                     <th>Actions</th>
                                   </tr>
@@ -996,6 +1024,52 @@ const handleMarkAsDelivered = async () => {
                                       <td className="text-white">{device.brand}</td>
                                       <td className="text-white">{device.model}</td>
                                       <td className="text-cyan">{device.serialNumber || '-'}</td>
+                                      <td>
+                                        {device.toDo ? (
+                                          <div className="d-flex align-items-center">
+                                            <i className="fas fa-tasks text-warning me-2"></i>
+                                            <div className="text-white text-truncate" style={{maxWidth: "100px"}}>
+                                              <small style={{whiteSpace: 'pre-line', lineHeight: '1.2'}}>
+                                                {device.toDo}
+                                              </small>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <span className="badge bg-secondary">No tasks</span>
+                                        )}
+                                      </td>
+                                      <td>
+                                        <div className="d-flex flex-column">
+                                          {device.predefinedAccessories?.length > 0 && (
+                                            <div className="mb-1">
+                                              <small className="text-cyan fw-bold">Predefined:</small>
+                                              <div className="d-flex flex-wrap gap-1 mt-1">
+                                                {device.predefinedAccessories.slice(0, 2).map((accessory, accIndex) => (
+                                                  <span key={accIndex} className="badge bg-info badge-sm">
+                                                    {accessory}
+                                                  </span>
+                                                ))}
+                                                {device.predefinedAccessories.length > 2 && (
+                                                  <span className="badge bg-secondary badge-sm">
+                                                    +{device.predefinedAccessories.length - 2}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {device.customAccessories && (
+                                            <div>
+                                              <small className="text-cyan fw-bold">Custom:</small>
+                                              <small className="text-white d-block text-truncate" style={{maxWidth: "100px"}}>
+                                                {device.customAccessories}
+                                              </small>
+                                            </div>
+                                          )}
+                                          {(!device.predefinedAccessories?.length && !device.customAccessories) && (
+                                            <span className="badge bg-secondary">None</span>
+                                          )}
+                                        </div>
+                                      </td>
                                       <td className="text-white"><small>{device.note || '-'}</small></td>
                                       <td>
                                         <button 
@@ -1053,7 +1127,7 @@ const handleMarkAsDelivered = async () => {
                         </div>
                         <div className="row">
                           <div className="col-md-4 mb-3">
-                            <label className="form-label text-cyan">Credentials</label>
+                            <label className="form-label text-cyan">Credentials *</label>
                             <input 
                               type="text" 
                               className="form-control form-control-kiva" 
@@ -1081,11 +1155,93 @@ const handleMarkAsDelivered = async () => {
                             />
                           </div>
                         </div>
+                        
+                        {/* Accessories Section */}
+                        <div className="row mb-3">
+                          <div className="col-12">
+                            <h6 className="text-cyan fw-bold mb-3">
+                              <i className="fas fa-puzzle-piece me-2"></i>Device Accessories
+                            </h6>
+                          </div>
+                        </div>
+                        
+                        {predefinedAccessories.length > 0 && (
+                          <div className="row mb-3">
+                            <div className="col-12">
+                              <label className="form-label text-cyan fw-bold mb-2">Predefined Accessories</label>
+                              <div className="row">
+                                {predefinedAccessories.map((accessory, index) => (
+                                  <div key={index} className="col-md-4 col-lg-3 mb-2">
+                                    <div className="form-check">
+                                      <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={`new-accessory-${index}`}
+                                        checked={newDevice.predefinedAccessories?.includes(accessory) || false}
+                                        onChange={(e) => {
+                                          const updatedAccessories = e.target.checked
+                                            ? [...(newDevice.predefinedAccessories || []), accessory]
+                                            : (newDevice.predefinedAccessories || []).filter(a => a !== accessory)
+                                          setNewDevice({
+                                            ...newDevice,
+                                            predefinedAccessories: updatedAccessories
+                                          })
+                                        }}
+                                      />
+                                      <label className="form-check-label text-white" htmlFor={`new-accessory-${index}`}>
+                                        {accessory}
+                                      </label>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="row mb-3">
+                          <div className="col-12">
+                            <label className="form-label text-cyan fw-bold">Custom Accessories</label>
+                            <textarea 
+                              className="form-control form-control-kiva" 
+                              value={newDevice.customAccessories || ''}
+                              onChange={(e) => setNewDevice({
+                                ...newDevice, 
+                                customAccessories: e.target.value
+                              })}
+                              rows="2"
+                              placeholder="Enter any additional accessories (one per line)"
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        <div className="row mb-3">
+                          <div className="col-12">
+                            <label className="form-label text-cyan fw-bold">
+                              <i className="fas fa-tasks me-2"></i>ToDo Tasks
+                            </label>
+                            <textarea 
+                              className="form-control form-control-kiva" 
+                              value={newDevice.toDo || ''}
+                              onChange={(e) => setNewDevice({
+                                ...newDevice, 
+                                toDo: e.target.value
+                              })}
+                              rows="3"
+                              placeholder="Enter tasks that need to be completed for this device..."
+                            ></textarea>
+                            <small className="text-muted">
+                              Specify any tasks, repairs, or checks that need to be performed on this device.
+                            </small>
+                          </div>
+                        </div>
                         <div className="d-flex justify-content-end">
                           <button 
                             type="button" 
                             className="btn btn-kiva-outline"
                             onClick={handleAddDeviceToOrder}
+                            disabled={!newDevice.brand || !newDevice.model || !newDevice.credential || newDevice.credential.trim() === ''}
+                            title={(!newDevice.brand || !newDevice.model || !newDevice.credential || newDevice.credential.trim() === '') ? 'Please fill in all required fields (Brand, Model, and Credentials)' : 'Add device to order'}
                           >
                             <i className="fas fa-plus me-2"></i>Add Device to Order
                           </button>
@@ -1228,6 +1384,8 @@ const handleMarkAsDelivered = async () => {
                                 <th>Brand</th>
                                 <th>Model</th>
                                 <th>Serial Number</th>
+                                <th>ToDo</th>
+                                <th>Accessories</th>
                                 <th>Received Date</th>
                                 <th>Note</th>
                               </tr>
@@ -1239,6 +1397,52 @@ const handleMarkAsDelivered = async () => {
                                   <td className="text-white">{device.brand}</td>
                                   <td className="text-white">{device.model}</td>
                                   <td className="text-cyan">{device.serialNumber || '-'}</td>
+                                  <td>
+                                    {device.toDo ? (
+                                      <div className="d-flex align-items-center">
+                                        <i className="fas fa-tasks text-warning me-2"></i>
+                                        <div className="text-white text-truncate" style={{maxWidth: "120px"}}>
+                                          <small style={{whiteSpace: 'pre-line', lineHeight: '1.2'}}>
+                                            {device.toDo}
+                                          </small>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <span className="badge bg-secondary">No tasks</span>
+                                    )}
+                                  </td>
+                                  <td>
+                                    <div className="d-flex flex-column">
+                                      {device.predefinedAccessories?.length > 0 && (
+                                        <div className="mb-1">
+                                          <small className="text-cyan fw-bold">Predefined:</small>
+                                          <div className="d-flex flex-wrap gap-1 mt-1">
+                                            {device.predefinedAccessories.slice(0, 2).map((accessory, accIndex) => (
+                                              <span key={accIndex} className="badge bg-info badge-sm">
+                                                {accessory}
+                                              </span>
+                                            ))}
+                                            {device.predefinedAccessories.length > 2 && (
+                                              <span className="badge bg-secondary badge-sm">
+                                                +{device.predefinedAccessories.length - 2}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {device.customAccessories && (
+                                        <div>
+                                          <small className="text-cyan fw-bold">Custom:</small>
+                                          <small className="text-white d-block text-truncate" style={{maxWidth: "120px"}}>
+                                            {device.customAccessories}
+                                          </small>
+                                        </div>
+                                      )}
+                                      {(!device.predefinedAccessories?.length && !device.customAccessories) && (
+                                        <span className="badge bg-secondary">No accessories</span>
+                                      )}
+                                    </div>
+                                  </td>
                                   <td className="text-white">{device.receivedDate || '-'}</td>
                                   <td className="text-white">
                                     <small className="text-truncate d-inline-block" style={{maxWidth: '150px'}}>

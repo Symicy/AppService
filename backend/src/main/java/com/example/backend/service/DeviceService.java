@@ -4,11 +4,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 import org.springframework.stereotype.Service;
 
 import com.example.backend.domain.Device;
 import com.example.backend.domain.OrderLog;
+import com.example.backend.domain.PredefinedAccessory;
 import com.example.backend.repo.DeviceRepo;
 
 import jakarta.transaction.Transactional;
@@ -196,5 +200,32 @@ public class DeviceService {
                     return savedDevice;
                 })
                 .orElseThrow(() -> new RuntimeException("Device not found with ID: " + id));
+    }
+
+    public Device updateDeviceAccessories(Long id, Set<String> predefinedAccessories, String customAccessories) {
+        return deviceRepo.findById(id)
+            .map(device -> {
+                // Actualizează accesoriile predefinite
+                if (predefinedAccessories != null) {
+                    device.setPredefinedAccessories(predefinedAccessories);
+                } else {
+                    device.setPredefinedAccessories(new HashSet<>());
+                }
+                
+                // Actualizează accesoriile personalizate
+                device.setCustomAccessories(customAccessories);
+                
+                return deviceRepo.save(device);
+            })
+            .orElseThrow(() -> new RuntimeException("Device not found with ID: " + id));
+    }
+
+    // Metodă pentru a obține toate accesoriile predefinite disponibile
+    public List<String> getAllPredefinedAccessories() {
+        List<String> accessories = new ArrayList<>();
+        for (PredefinedAccessory accessory : PredefinedAccessory.values()) {
+            accessories.add(accessory.getDisplayName());
+        }
+        return accessories;
     }
 }

@@ -234,6 +234,18 @@ export const canOrderBeDelivered = async (orderId) => {
   }
 };
 
+export const fetchActiveOrdersCount = async () => {
+  try {
+    console.log('📊 Fetching count of active orders');
+    const response = await apiClient.get('/nrActiveOrders');
+    console.log('✅ Active orders count fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching active orders count:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 export default {
   fetchAllOrders,
   getOrderById,
@@ -247,5 +259,6 @@ export default {
   fetchFilteredOrders,
   getOrderDetails,
   markOrderAsDelivered,
-  canOrderBeDelivered
+  canOrderBeDelivered,
+  fetchActiveOrdersCount
 };

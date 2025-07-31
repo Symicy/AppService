@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js'
+import { Line, Doughnut } from 'react-chartjs-2'
 import KivaLogo from '../poze/3dlogo.png'
+import { dashboardAPI } from '../services/api/dashboardAPI'
 import '../styles/global.css'
 import '../styles/components/navbar.css'
 import '../styles/components/buttons.css'
@@ -8,63 +22,201 @@ import '../styles/components/cards.css'
 import '../styles/components/tables.css'
 import '../styles/components/badges.css'
 
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+)
+
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState({
     totalOrders: 0,
     inProgress: 0,
     completed: 0,
     awaitingParts: 0,
-    pending: 0,
     cancelled: 0,
     totalClients: 0,
     totalDevices: 0,
-    revenue: 0,
     recentOrders: [],
-    topTechnicians: [],
-    statusDistribution: [],
-    monthlyRevenue: []
+    monthlyOrdersData: {
+      labels: [],
+      datasets: []
+    },
+    statusDistribution: {
+      labels: [],
+      datasets: []
+    }
   })
 
-  // Mock data - replace with API calls
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  // Fetch dashboard data from API
   useEffect(() => {
-    setDashboardData({
-      totalOrders: 156,
-      inProgress: 23,
-      completed: 89,
-      awaitingParts: 12,
-      pending: 18,
-      cancelled: 14,
-      totalClients: 87,
-      totalDevices: 142,
-      revenue: 15420,
-      recentOrders: [
-        { id: 1, orderNumber: 'ORD-2025-001', client: 'John Doe', device: 'Dell Inspiron 15', status: 'in_progress', priority: 'high' },
-        { id: 2, orderNumber: 'ORD-2025-002', client: 'Tech Solutions SRL', device: 'HP ProBook 450', status: 'awaiting_parts', priority: 'medium' },
-        { id: 3, orderNumber: 'ORD-2025-003', client: 'Maria Popescu', device: 'MacBook Pro 13', status: 'completed', priority: 'low' },
-        { id: 4, orderNumber: 'ORD-2025-004', client: 'Digital Corp', device: 'Lenovo ThinkPad', status: 'pending', priority: 'high' },
-        { id: 5, orderNumber: 'ORD-2025-005', client: 'Alex Smith', device: 'ASUS ROG Laptop', status: 'in_progress', priority: 'medium' }
-      ],
-      topTechnicians: [
-        { name: 'Mike Wilson', orders: 34, rating: 4.8 },
-        { name: 'Sarah Johnson', orders: 28, rating: 4.6 },
-        { name: 'David Brown', orders: 22, rating: 4.7 },
-        { name: 'Lisa Garcia', orders: 19, rating: 4.5 }
-      ]
-    })
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true)
+        setError('')
+
+        // Fetch all dashboard data in parallel
+        const [stats, recentOrders, monthlyData, statusData] = await Promise.all([
+          dashboardAPI.getDashboardStats(),
+          dashboardAPI.getRecentOrders(5),
+          dashboardAPI.getMonthlyOrdersData(),
+          dashboardAPI.getStatusDistribution()
+        ])
+
+        // Transform the data for charts
+        const transformedMonthlyData = {
+          labels: monthlyData.labels || [],
+          datasets: [
+            {
+              label: 'Completed Orders',
+              data: monthlyData.completedData || [],
+              borderColor: '#28a745',
+              backgroundColor: 'rgba(40, 167, 69, 0.1)',
+              tension: 0.4,
+            },
+            {
+              label: 'New Orders',
+              data: monthlyData.newOrdersData || [],
+              borderColor: '#00ffff',
+              backgroundColor: 'rgba(0, 255, 255, 0.1)',
+              tension: 0.4,
+            }
+          ]
+        }
+
+        const transformedStatusData = {
+          labels: statusData.labels || [],
+          datasets: [
+            {
+              data: statusData.data || [],
+              backgroundColor: [
+                '#17a2b8', // PRELUAT - Info Blue
+                '#ffc107', // IN_LUCRU - Warning Yellow
+                '#28a745', // FINALIZAT - Success Green
+                '#6f42c1'  // PREDAT - Purple
+              ],
+              borderColor: [
+                '#17a2b8',
+                '#ffc107',
+                '#28a745',
+                '#6f42c1'
+              ],
+              borderWidth: 2,
+            }
+          ]
+        }
+
+        setDashboardData({
+          totalOrders: stats.totalOrders || 0,
+          inProgress: stats.inProgress || 0,
+          completed: stats.completed || 0,
+          awaitingParts: stats.awaitingParts || 0,
+          cancelled: stats.cancelled || 0,
+          totalClients: stats.totalClients || 0,
+          totalDevices: stats.totalDevices || 0,
+          recentOrders: recentOrders || [],
+          monthlyOrdersData: transformedMonthlyData,
+          statusDistribution: transformedStatusData
+        })
+
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        setError('Failed to load dashboard data. Please try again.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
   }, [])
 
   const statusColors = {
-    'pending': 'secondary',
-    'in_progress': 'warning',
-    'awaiting_parts': 'info',
-    'completed': 'success',
+    'PRELUAT': 'info',
+    'IN_LUCRU': 'warning', 
+    'FINALIZAT': 'success',
+    'PREDAT': 'primary',
+    'IN_ASTEPTARE': 'secondary',
     'cancelled': 'danger'
   }
 
-  const priorityColors = {
-    'low': 'success',
-    'medium': 'warning',
-    'high': 'danger'
+  // Chart options
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#ffffff',
+          font: {
+            family: 'Oxanium'
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Monthly Orders Trend',
+        color: '#00ffff',
+        font: {
+          family: 'Oxanium',
+          size: 16
+        }
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: '#ffffff'
+        },
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        }
+      },
+      x: {
+        ticks: {
+          color: '#ffffff'
+        },
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        }
+      }
+    }
+  }
+
+  const doughnutChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#ffffff',
+          font: {
+            family: 'Oxanium'
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Order Status Distribution',
+        color: '#00ffff',
+        font: {
+          family: 'Oxanium',
+          size: 16
+        }
+      },
+    }
   }
 
   return (
@@ -118,9 +270,30 @@ function Dashboard() {
           </div>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="alert alert-danger mb-4">
+            <div className="d-flex align-items-center">
+              <i className="fas fa-exclamation-circle fa-2x me-3"></i>
+              <div>
+                <h5 className="mb-1">Error</h5>
+                <p className="mb-0">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-5">
+            <i className="fas fa-spinner fa-spin fa-3x text-cyan"></i>
+            <p className="mt-3 text-white">Loading dashboard...</p>
+          </div>
+        ) : (
+          <>
         {/* Main Stats Cards */}
         <div className="row g-3 mb-4">
-          <div className="col-lg-3 col-md-6">
+          <div className="col-lg-4 col-md-6">
             <div className="card stats-card-cyan text-white">
               <div className="card-body">
                 <div className="d-flex justify-content-between">
@@ -136,7 +309,7 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="col-lg-3 col-md-6">
+          <div className="col-lg-4 col-md-6">
             <div className="card stats-card-warning text-white">
               <div className="card-body">
                 <div className="d-flex justify-content-between">
@@ -152,7 +325,7 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="col-lg-3 col-md-6">
+          <div className="col-lg-4 col-md-6">
             <div className="card stats-card-success text-white">
               <div className="card-body">
                 <div className="d-flex justify-content-between">
@@ -168,27 +341,11 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="col-lg-3 col-md-6">
-            <div className="card stats-card-info text-white">
-              <div className="card-body">
-                <div className="d-flex justify-content-between">
-                  <div>
-                    <h6 className="card-title" style={{color: '#0dcaf0'}}>Revenue</h6>
-                    <h3 className="mb-0 text-white">${dashboardData.revenue.toLocaleString()}</h3>
-                    <small className="text-white opacity-75">This month</small>
-                  </div>
-                  <div className="align-self-center">
-                    <i className="fas fa-dollar-sign metric-icon" style={{color: '#0dcaf0'}}></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Secondary Stats */}
         <div className="row g-3 mb-4">
-          <div className="col-md-3">
+          <div className="col-md-4">
             <div className="card card-kiva text-center">
               <div className="card-body">
                 <i className="fas fa-users fa-2x text-cyan mb-2"></i>
@@ -197,7 +354,7 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-4">
             <div className="card card-kiva text-center">
               <div className="card-body">
                 <i className="fas fa-laptop fa-2x text-cyan mb-2"></i>
@@ -206,7 +363,7 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-4">
             <div className="card card-kiva text-center">
               <div className="card-body">
                 <i className="fas fa-hourglass-half fa-2x text-cyan mb-2"></i>
@@ -215,20 +372,11 @@ function Dashboard() {
               </div>
             </div>
           </div>
-          <div className="col-md-3">
-            <div className="card card-kiva text-center">
-              <div className="card-body">
-                <i className="fas fa-clock fa-2x text-cyan mb-2"></i>
-                <h5 className="text-cyan">{dashboardData.pending}</h5>
-                <small className="text-white">Pending Orders</small>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Charts and Recent Activity */}
         <div className="row g-3 mb-4">
-          <div className="col-lg-8">
+          <div className="col-lg-6">
             <div className="card card-kiva">
               <div className="card-header">
                 <h5 className="text-cyan mb-0">
@@ -236,39 +384,27 @@ function Dashboard() {
                 </h5>
               </div>
               <div className="card-body">
-                <div className="chart-placeholder">
-                  <div className="text-center">
-                    <i className="fas fa-chart-line fa-3x mb-3"></i>
-                    <br />
-                    Chart Integration Placeholder
-                    <br />
-                    <small>(Chart.js, D3.js, or similar)</small>
-                  </div>
+                <div style={{ height: '300px' }}>
+                  {dashboardData.monthlyOrdersData.labels.length > 0 && (
+                    <Line data={dashboardData.monthlyOrdersData} options={lineChartOptions} />
+                  )}
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-lg-4">
+          <div className="col-lg-6">
             <div className="card card-kiva">
               <div className="card-header">
                 <h5 className="text-cyan mb-0">
-                  <i className="fas fa-trophy me-2"></i>Top Technicians
+                  <i className="fas fa-chart-pie me-2"></i>Order Status Distribution
                 </h5>
               </div>
               <div className="card-body">
-                {dashboardData.topTechnicians.map((tech, index) => (
-                  <div key={index} className="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                      <div className="text-white fw-bold">{tech.name}</div>
-                      <small className="text-white opacity-75">{tech.orders} orders completed</small>
-                    </div>
-                    <div className="text-end">
-                      <div className="text-cyan">
-                        <i className="fas fa-star me-1"></i>{tech.rating}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                <div style={{ height: '300px' }}>
+                  {dashboardData.statusDistribution.labels.length > 0 && (
+                    <Doughnut data={dashboardData.statusDistribution} options={doughnutChartOptions} />
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -293,7 +429,6 @@ function Dashboard() {
                         <th>Client</th>
                         <th>Device</th>
                         <th>Status</th>
-                        <th>Priority</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -303,13 +438,8 @@ function Dashboard() {
                           <td className="text-white">{order.client}</td>
                           <td className="text-cyan">{order.device}</td>
                           <td>
-                            <span className={`badge bg-${statusColors[order.status]}`}>
-                              {order.status.replace('_', ' ').toUpperCase()}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`badge bg-${priorityColors[order.priority]}`}>
-                              {order.priority.toUpperCase()}
+                            <span className={`badge bg-${statusColors[order.originalStatus] || 'secondary'}`}>
+                              {order.originalStatus || 'UNKNOWN'}
                             </span>
                           </td>
                         </tr>
@@ -349,6 +479,8 @@ function Dashboard() {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
     </>
   )

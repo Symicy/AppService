@@ -168,4 +168,12 @@ public class OrderResource {
         boolean canDeliver = orderService.canBeMarkedAsDelivered(id);
         return ResponseEntity.ok(canDeliver);
     }
+
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/nrActiveOrders")
+    public ResponseEntity<Long> getActiveOrdersCount() {
+        log.info("Fetching count of active orders");
+        return ResponseEntity.ok(orderService.getActiveOrdersCount());
+    }
 }

@@ -107,6 +107,10 @@
   background: transparent;
   font-weight: bold;
   font-family: var(--font-primary);
+  padding: 8px 16px !important; /* Fixed padding */
+  font-size: 0.9rem !important; /* Fixed font size */
+  min-height: 40px !important; /* Fixed minimum height */
+  white-space: nowrap !important; /* Prevent text wrapping */
 }
 
 .btn-kiva-outline:hover {
