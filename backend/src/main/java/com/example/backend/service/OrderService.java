@@ -221,4 +221,9 @@ public class OrderService {
                 .map(order -> "FINALIZAT".equals(order.getStatus()))
                 .orElse(false);
     }
+
+    public Long getActiveOrdersCount() {
+        log.info("Fetching count of active orders");
+        return orderRepo.countByStatusNotIn(List.of("ANULAT", "PREDAT"));
+    }
 }

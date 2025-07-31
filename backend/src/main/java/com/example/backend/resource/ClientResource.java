@@ -54,6 +54,12 @@ public class ClientResource {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/nrClients")
+    public ResponseEntity<Long> getNumberOfClients() {
+        return ResponseEntity.ok(clientService.getNumberOfClients());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/email/{email}")
     public ResponseEntity<Client> getClientByEmail(@PathVariable(value = "email") String email) {
         return clientService.getClientByEmail(email)

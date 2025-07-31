@@ -1,6 +1,8 @@
 package com.example.backend.domain;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -9,7 +11,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -51,7 +55,13 @@ public class Device {
     @Column(name = "note", length = 255)
     private String note; 
 
-    @Column(name = "credential", length = 255)
+    @Column(name = "toDo", length = 255)
+    private String toDo;
+
+    @Column(name = "accessory", length = 255)
+    private String accessory;
+
+    @Column(name = "credential", length = 255, nullable = false)
     private String credential;
 
     @Column(name = "status", nullable = false)
@@ -69,5 +79,36 @@ public class Device {
     @JsonProperty("order_id")
     public Long getOrderId() {
         return order != null ? order.getId() : null;
+    }
+    
+    // Modifică câmpul accessory existent pentru a stoca accesorii personalizate
+    @Column(name = "custom_accessories", length = 255)
+    private String customAccessories;
+    
+    // Adaugă o colecție pentru accesoriile predefinite
+    @ElementCollection
+    @CollectionTable(
+        name = "device_predefined_accessories",
+        joinColumns = @JoinColumn(name = "device_id")
+    )
+    @Column(name = "accessory_name")
+    private Set<String> predefinedAccessories = new HashSet<>();
+    
+    // Adaugă metode helper
+    public void addPredefinedAccessory(String accessory) {
+        if (predefinedAccessories == null) {
+            predefinedAccessories = new HashSet<>();
+        }
+        predefinedAccessories.add(accessory);
+    }
+    
+    public void removePredefinedAccessory(String accessory) {
+        if (predefinedAccessories != null) {
+            predefinedAccessories.remove(accessory);
+        }
+    }
+    
+    public boolean hasPredefinedAccessory(String accessory) {
+        return predefinedAccessories != null && predefinedAccessories.contains(accessory);
     }
 }

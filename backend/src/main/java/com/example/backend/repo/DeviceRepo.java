@@ -10,4 +10,7 @@ public interface DeviceRepo extends JpaRepository<Device, Long> {
     Optional<Device> findDeviceById(Long id);
     Optional<Device> findDeviceBySerialNumber(String serialNumber);
     boolean existsBySerialNumber(String serialNumber);
+    
+    // Dashboard methods for counting device statuses
+    long countByStatus(String status);
 }

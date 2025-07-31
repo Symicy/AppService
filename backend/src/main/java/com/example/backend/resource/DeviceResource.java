@@ -1,8 +1,10 @@
 package com.example.backend.resource;
 
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
@@ -91,5 +93,32 @@ public class DeviceResource {
         }
         
         return ResponseEntity.ok(deviceService.updateDeviceStatus(id, newStatus));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/accessories/predefined")
+    public ResponseEntity<List<String>> getAllPredefinedAccessories() {
+        return ResponseEntity.ok(deviceService.getAllPredefinedAccessories());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/accessories")
+    public ResponseEntity<Device> updateDeviceAccessories(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Object> accessoriesData) {
+        
+        Set<String> predefinedAccessories = new HashSet<>();
+        if (accessoriesData.containsKey("predefinedAccessories")) {
+            @SuppressWarnings("unchecked")
+            List<String> predefinedList = (List<String>) accessoriesData.get("predefinedAccessories");
+            predefinedAccessories.addAll(predefinedList);
+        }
+        
+        String customAccessories = (String) accessoriesData.getOrDefault("customAccessories", "");
+        
+        Device updatedDevice = deviceService.updateDeviceAccessories(
+            id, predefinedAccessories, customAccessories);
+        
+        return ResponseEntity.ok(updatedDevice);
     }
 }

@@ -154,4 +154,9 @@ public class ClientService {
         Specification<Client> spec = ClientSpecification.filterClients(searchTerm, type);
         return clientRepo.findAll(spec, pageable);
     }
+
+    public long getNumberOfClients() {
+        log.info("Fetching total number of clients");
+        return clientRepo.count();
+    }
 }
