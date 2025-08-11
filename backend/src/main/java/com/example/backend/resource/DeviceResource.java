@@ -35,8 +35,22 @@ public class DeviceResource {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<Device> addDevice(@RequestBody Device device){
-        return ResponseEntity.created(URI.create("api/devices/add/" + device.getId()))
-                .body(deviceService.addDevice(device));
+        Device savedDevice = deviceService.addDevice(device);
+        // Generează link-ul pentru status dispozitiv
+        String qrLink = "http://localhost:5173/devices/" + savedDevice.getId();
+
+        // Generează QR și salvează imaginea PNG într-un folder local
+        try {
+            String qrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\device-" + savedDevice.getId() + ".png";
+            com.example.backend.util.QrGenerator.generateQrCode(qrLink, qrPath);
+            // Poți salva calea imaginii QR în entitatea Device dacă vrei
+            // savedDevice.setQrPath(qrPath);
+            // deviceService.updateDevice(savedDevice.getId(), savedDevice);
+        } catch (Exception e) {
+            log.error("Eroare la generarea codului QR pentru dispozitiv {}", savedDevice.getId(), e);
+        }
+        return ResponseEntity.created(URI.create("api/devices/add/" + savedDevice.getId()))
+                .body(savedDevice);
     }
     
     @PreAuthorize("hasRole('ADMIN')")

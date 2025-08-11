@@ -26,6 +26,8 @@ import com.example.backend.security.JwtUtil;
 import com.example.backend.domain.User;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.RegisterResponse;
+import com.example.backend.dto.UserListDTO;
+import com.example.backend.dto.UserUpdateDTO;
 import com.example.backend.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -161,8 +163,20 @@ public class UserResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<UserListDTO>> getAllUsers() {
+        List<UserListDTO> users = userService.getAllUsers().stream()
+            .map(user -> {
+                UserListDTO dto = new UserListDTO();
+                dto.setId(user.getId());
+                dto.setUsername(user.getUsername());
+                dto.setEmail(user.getEmail());
+                dto.setPhone(user.getPhone());
+                dto.setRole(user.getRole());
+                dto.setCreatedAt(user.getCreatedAt());
+                return dto;
+            })
+            .toList();
+        return ResponseEntity.ok(users);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -174,9 +188,21 @@ public class UserResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable(value = "id") Long id,
-                                             @RequestBody User updatedUser) {
-        return ResponseEntity.ok(userService.updateUser(id, updatedUser));
+    public ResponseEntity<UserUpdateDTO> updateUser(@PathVariable(value = "id") Long id,
+                                         @RequestBody User updatedUser) {
+        User user = userService.updateUser(id, updatedUser);
+        
+        // Convertim User în UserUpdateDTO pentru a nu expune parola
+        UserUpdateDTO responseDTO = new UserUpdateDTO(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getRole(),
+            user.getCreatedAt()
+        );
+        
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

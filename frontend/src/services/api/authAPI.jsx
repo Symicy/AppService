@@ -152,6 +152,20 @@ export const authAPI = {
     }
   },
 
+  // Add update user method
+  updateUser: async (userId, userData) => {
+    console.log('✏️ Updating user with ID:', userId)
+    console.log('📝 Update data:', userData)
+    try {
+      const response = await apiClient.put(`/users/update/${userId}`, userData)
+      console.log('✅ Update user response:', response.data)
+      return response.data
+    } catch (error) {
+      console.error('❌ Update user error:', error.response?.data || error.message)
+      throw error
+    }
+  },
+
   deleteUser: async (userId) => {
     console.log('🗑️ Deleting user with ID:', userId)
     try {
