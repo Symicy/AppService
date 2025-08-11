@@ -26,6 +26,17 @@ function Users() {
     role: 'TECHNICIAN'
   })
 
+  // Adaugă următoarele state-uri la începutul componentei
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editUserForm, setEditUserForm] = useState({
+    id: null,
+    username: '',
+    email: '',
+    phone: '',
+    role: '',
+    password: '' // Opțional pentru editare
+  });
+
   // Define the admin check function FIRST, before using it
   const isAdmin = (role) => {
     if (!role) return false
@@ -158,6 +169,71 @@ function Users() {
       }
     }
   }
+
+  // Adaugă această funcție pentru a deschide modalul de editare
+  const openEditUserModal = (user) => {
+    setEditUserForm({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone || '',
+      role: user.role,
+      password: '' // Gol inițial, va fi opțional
+    });
+    setShowEditUserModal(true);
+  };
+
+  // Adaugă această funcție pentru a actualiza utilizatorul
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      console.log('👤 Updating user:', editUserForm.username, 'ID:', editUserForm.id);
+      
+      // Creăm un obiect de actualizare, excludem parola dacă e goală
+      const updateData = {
+        ...editUserForm,
+        password: editUserForm.password.trim() === '' ? undefined : editUserForm.password
+      };
+      
+      // Apelăm API-ul pentru actualizare
+      await authAPI.updateUser(editUserForm.id, updateData);
+      
+      // Actualizăm lista locală de utilizatori
+      setUsers(users.map(user => 
+        user.id === editUserForm.id 
+          ? { ...user, 
+              username: editUserForm.username, 
+              email: editUserForm.email,
+              phone: editUserForm.phone,
+              role: editUserForm.role
+            } 
+          : user
+      ));
+      
+      // Închidem modalul și resetăm formularul
+      setShowEditUserModal(false);
+      setEditUserForm({
+        id: null,
+        username: '',
+        email: '',
+        phone: '',
+        role: '',
+        password: ''
+      });
+      
+      // Afișăm mesaj de succes
+      alert(`User "${editUserForm.username}" has been updated successfully!`);
+      
+    } catch (error) {
+      console.error('❌ Update user error:', error);
+      setError('Failed to update user. Please try again.');
+    }
+    
+    setIsLoading(false);
+  };
 
   // If not admin, show access denied
   if (!userIsAdmin) {
@@ -409,6 +485,7 @@ function Users() {
                         <div className="btn-group btn-group-sm" role="group">
                           <button 
                             className="btn btn-kiva-action"
+                            onClick={() => openEditUserModal(user)}
                             title="Edit User"
                           >
                             <i className="fas fa-edit"></i>
@@ -548,6 +625,129 @@ function Users() {
                     ) : (
                       <>
                         <i className="fas fa-user-plus me-2"></i>Create User
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal - New Section */}
+      {showEditUserModal && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content" style={{background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)', border: '2px solid #00ffff'}}>
+              <div className="modal-header" style={{borderBottom: '1px solid #00ffff'}}>
+                <h5 className="modal-title text-cyan">
+                  <i className="fas fa-edit me-2"></i>Edit User
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowEditUserModal(false)}
+                ></button>
+              </div>
+              <form onSubmit={handleUpdateUser}>
+                <div className="modal-body">
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label text-cyan fw-bold">
+                        <i className="fas fa-user me-2"></i>Username
+                      </label>
+                      <input 
+                        type="text" 
+                        className="form-control form-control-kiva"
+                        placeholder="Enter username"
+                        value={editUserForm.username}
+                        onChange={(e) => setEditUserForm({...editUserForm, username: e.target.value})}
+                        required
+                      />
+                      <small className="text-warning">
+                        <i className="fas fa-info-circle me-1"></i>
+                        Changing username may affect user's login
+                      </small>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label text-cyan fw-bold">
+                        <i className="fas fa-envelope me-2"></i>Email
+                      </label>
+                      <input 
+                        type="email" 
+                        className="form-control form-control-kiva"
+                        placeholder="Enter email"
+                        value={editUserForm.email}
+                        onChange={(e) => setEditUserForm({...editUserForm, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label text-cyan fw-bold">
+                        <i className="fas fa-lock me-2"></i>Password
+                      </label>
+                      <input 
+                        type="password" 
+                        className="form-control form-control-kiva"
+                        placeholder="Leave empty to keep current password"
+                        value={editUserForm.password}
+                        onChange={(e) => setEditUserForm({...editUserForm, password: e.target.value})}
+                      />
+                      <small className="text-info">
+                        <i className="fas fa-info-circle me-1"></i>
+                        Optional - leave empty to keep current password
+                      </small>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label text-cyan fw-bold">
+                        <i className="fas fa-phone me-2"></i>Phone
+                      </label>
+                      <input 
+                        type="tel" 
+                        className="form-control form-control-kiva"
+                        placeholder="Enter phone number"
+                        value={editUserForm.phone}
+                        onChange={(e) => setEditUserForm({...editUserForm, phone: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label text-cyan fw-bold">
+                      <i className="fas fa-user-tag me-2"></i>Role
+                    </label>
+                    <select 
+                      className="form-select form-select-kiva"
+                      value={editUserForm.role}
+                      onChange={(e) => setEditUserForm({...editUserForm, role: e.target.value})}
+                      required
+                    >
+                      <option value="TECHNICIAN">Technician</option>
+                      <option value="ADMIN">Administrator</option>
+                    </select>
+                  </div>
+
+                  <div className="alert" style={{background: 'rgba(0, 255, 255, 0.1)', border: '1px solid #00ffff', color: '#00ffff'}}>
+                    <i className="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Changes will take effect immediately.
+                  </div>
+                </div>
+                <div className="modal-footer" style={{borderTop: '1px solid #00ffff'}}>
+                  <button type="button" className="btn btn-kiva-outline" onClick={() => setShowEditUserModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-kiva-action" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin me-2"></i>Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-save me-2"></i>Save Changes
                       </>
                     )}
                   </button>

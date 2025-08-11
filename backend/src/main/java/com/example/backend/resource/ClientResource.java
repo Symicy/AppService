@@ -1,5 +1,7 @@
 package com.example.backend.resource;
 
+import com.example.backend.dto.ClientListDTO;
+
 import java.net.URI;
 import java.util.List;
 
@@ -49,8 +51,19 @@ public class ClientResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
-    public ResponseEntity<List<Client>> getAllClients() {
-        return ResponseEntity.ok(clientService.getAllClients());
+    public ResponseEntity<List<ClientListDTO>> getAllClients() {
+        List<ClientListDTO> clients = clientService.getAllClients().stream()
+            .map(client -> new ClientListDTO(
+                client.getId(),
+                client.getName(),
+                client.getSurname(),
+                null, // email not needed for order form
+                null, // phone not needed for order form
+                client.getType(),
+                client.getCui()
+            ))
+            .toList();
+        return ResponseEntity.ok(clients);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -96,17 +109,15 @@ public class ClientResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/filter")
-    public ResponseEntity<Page<Client>> getFilteredClients(
+    public ResponseEntity<Page<com.example.backend.dto.ClientListDTO>> getFilteredClients(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false, defaultValue = "all") String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
-        
         log.info("Received paginated filter request: search={}, type={}, page={}, size={}", 
                  searchTerm, type, page, size);
-                 
         Pageable pageable = PageRequest.of(
             page, 
             size, 
@@ -114,7 +125,16 @@ public class ClientResource {
                 Sort.by(sortBy).ascending() : 
                 Sort.by(sortBy).descending()
         );
-        
-        return ResponseEntity.ok(clientService.getFilteredPagedClients(searchTerm, type, pageable));
+        Page<Client> clients = clientService.getFilteredPagedClients(searchTerm, type, pageable);
+        Page<com.example.backend.dto.ClientListDTO> dtoPage = clients.map(client -> new com.example.backend.dto.ClientListDTO(
+            client.getId(),
+            client.getName(),
+            client.getSurname(),
+            client.getEmail(),
+            client.getPhone(),
+            client.getType(),
+            client.getCui()
+        ));
+        return ResponseEntity.ok(dtoPage);
     }
 }

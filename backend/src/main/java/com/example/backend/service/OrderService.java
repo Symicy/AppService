@@ -131,15 +131,14 @@ public class OrderService {
     public Optional<OrderDetailDTO> getOrderDetailsById(Long id) {
         log.info("Fetching complete order details by ID: {}", id);
         return orderRepo.findOrderById(id)
-                .map(order -> {
-                    return new OrderDetailDTO(
+                .map(order -> new OrderDetailDTO(
                         order.getId(),
                         order.getCreatedAt(),
                         order.getStatus(),
                         order.getClient(),
-                        order.getDevices()
-                    );
-                });
+                        order.getDevices(),
+                        order.getOrderLogs()
+                ));
     }
 
     /**
@@ -187,7 +186,7 @@ public class OrderService {
                     }
                     
                     // Salvează statusul anterior pentru log
-                    String oldStatus = order.getStatus();
+                    //String oldStatus = order.getStatus();
                     
                     // Actualizează statusul comenzii
                     order.setStatus("PREDAT");

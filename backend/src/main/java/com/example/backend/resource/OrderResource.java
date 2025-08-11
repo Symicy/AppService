@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.domain.Order;
 import com.example.backend.dto.OrderDetailDTO;
 import com.example.backend.dto.OrderListDTO;
+import com.example.backend.dto.ClientOrderDetailsDTO;
 import com.example.backend.service.OrderService;
 
 import lombok.RequiredArgsConstructor;
@@ -45,19 +46,25 @@ public class OrderResource {
     public ResponseEntity<Order> addOrder(@RequestBody Order order) {
         Order savedOrder = orderService.addOrder(order);
 
-        // Generează link-ul pentru status comandă
-        //String qrLink = "http://localhost:5173/orders/" + savedOrder.getId();
-        String qrLink = "http://localhost:5173/orders/";
-
-        // Generează QR și salvează imaginea PNG într-un folder local
+        // Generează QR pentru client - cu toate detaliile comenzii
+        String clientQrLink = "http://localhost:5173/client-order/" + savedOrder.getId();
+        
         try {
-            String qrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\order-" + savedOrder.getId() + ".png";
-            com.example.backend.util.QrGenerator.generateQrCode(qrLink, qrPath);
-            // Poți salva calea imaginii QR în entitatea Order dacă vrei
-            // savedOrder.setQrPath(qrPath);
-            // orderService.updateOrder(savedOrder.getId(), savedOrder);
+            // QR pentru client
+            String clientQrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\client-order-" + savedOrder.getId() + ".png";
+            com.example.backend.util.QrGenerator.generateQrCode(clientQrLink, clientQrPath);
+            
+            // Generează QR pentru fiecare device pentru service/technician
+            if (savedOrder.getDevices() != null) {
+                for (var device : savedOrder.getDevices()) {
+                    String serviceQrLink = "http://localhost:5173/service-device/" + device.getId();
+                    String serviceQrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\service-device-" + device.getId() + ".png";
+                    com.example.backend.util.QrGenerator.generateQrCode(serviceQrLink, serviceQrPath);
+                }
+            }
+            
         } catch (Exception e) {
-            log.error("Eroare la generarea codului QR pentru comanda {}", savedOrder.getId(), e);
+            log.error("Eroare la generarea codurilor QR pentru comanda {}", savedOrder.getId(), e);
         }
 
         return ResponseEntity.created(URI.create("/api/orders/add/" + savedOrder.getId()))
@@ -94,7 +101,7 @@ public class OrderResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/filter")
-    public ResponseEntity<Page<OrderListDTO>> getFilteredOrders(
+    public ResponseEntity<Page<com.example.backend.dto.OrderListDTO>> getFilteredOrders(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false, defaultValue = "all") String status,
             @RequestParam(required = false) Long deviceId,
@@ -102,10 +109,8 @@ public class OrderResource {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        
         log.info("Received paginated filter request: search={}, status={}, deviceId={}, page={}, size={}", 
                  searchTerm, status, deviceId, page, size);
-                 
         Pageable pageable = PageRequest.of(
             page, 
             size, 
@@ -113,32 +118,29 @@ public class OrderResource {
                 Sort.by(sortBy).ascending() : 
                 Sort.by(sortBy).descending()
         );
-        
-        // Transformă rezultatul în DTO-uri care conțin doar datele necesare pentru tabel
-        Page<OrderListDTO> orderDTOs = orderService.getFilteredPagedOrders(searchTerm, status, deviceId, pageable).map(
-            order -> new OrderListDTO(
-                order.getId(),
-                order.getClient().getName() + " " + order.getClient().getSurname(),
-                order.getCreatedAt(),
-                order.getStatus(),
-                (long) order.getDevices().size()
-            )
-        );
-        
-        return ResponseEntity.ok(orderDTOs);
+        Page<Order> orders = orderService.getFilteredPagedOrders(searchTerm, status, deviceId, pageable);
+        Page<com.example.backend.dto.OrderListDTO> dtoPage = orders.map(order -> new com.example.backend.dto.OrderListDTO(
+            order.getId(),
+            order.getClient() != null ? order.getClient().getName() + " " + order.getClient().getSurname() : "",
+            order.getCreatedAt(),
+            order.getStatus(),
+            order.getDevices() != null ? (long) order.getDevices().size() : 0L
+        ));
+        return ResponseEntity.ok(dtoPage);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/details/{id}")
-    public ResponseEntity<OrderDetailDTO> getOrderDetails(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<com.example.backend.dto.OrderDetailDTO> getOrderDetails(@PathVariable(value = "id") Long id) {
         return orderService.getOrderById(id)
                 .map(order -> {
-                    OrderDetailDTO dto = new OrderDetailDTO(
+                    com.example.backend.dto.OrderDetailDTO dto = new com.example.backend.dto.OrderDetailDTO(
                         order.getId(),
                         order.getCreatedAt(),
                         order.getStatus(),
-                        order.getClient(), // Client complet
-                        order.getDevices() // Toate dispozitivele
+                        order.getClient(),
+                        order.getDevices(),
+                        order.getOrderLogs()
                     );
                     return ResponseEntity.ok(dto);
                 })
@@ -169,7 +171,48 @@ public class OrderResource {
         return ResponseEntity.ok(canDeliver);
     }
 
-    
+    /**
+     * Endpoint public pentru detaliile complete ale comenzii pentru clienți
+     * Folosit pentru QR code-urile scanate de clienți
+     */
+    @GetMapping("/client/{id}")
+    public ResponseEntity<ClientOrderDetailsDTO> getClientOrderDetails(@PathVariable(value = "id") Long id) {
+        log.info("Fetching client details for order ID: {}", id);
+        
+        return orderService.getOrderById(id)
+                .map(order -> {
+                    // Creăm lista de device-uri pentru client
+                    List<ClientOrderDetailsDTO.DeviceDetailsDTO> deviceDTOs = order.getDevices().stream()
+                            .map(device -> new ClientOrderDetailsDTO.DeviceDetailsDTO(
+                                device.getId(),
+                                "Device", // Default type since deviceType doesn't exist
+                                device.getBrand(),
+                                device.getModel(),
+                                device.getSerialNumber(),
+                                device.getNote(), // Using note as issue description
+                                device.getStatus(),
+                                device.getToDo() // Using toDo as technician notes
+                            ))
+                            .collect(java.util.stream.Collectors.toList());
+                    
+                    // Creăm DTO-ul complet pentru client
+                    ClientOrderDetailsDTO clientOrder = new ClientOrderDetailsDTO(
+                        order.getId(),
+                        order.getClient() != null ? 
+                            order.getClient().getName() + " " + order.getClient().getSurname() : 
+                            "Client Name",
+                        order.getClient() != null ? order.getClient().getPhone() : "",
+                        order.getClient() != null ? order.getClient().getEmail() : "",
+                        order.getCreatedAt(),
+                        order.getStatus(),
+                        "", // No notes field in Order, using empty string
+                        deviceDTOs
+                    );
+                    return ResponseEntity.ok(clientOrder);
+                })
+                .orElseGet(ResponseEntity.notFound()::build);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/nrActiveOrders")
     public ResponseEntity<Long> getActiveOrdersCount() {

@@ -5,13 +5,47 @@ const API_BASE_URL = 'http://localhost:8080/api/orders';
 
 // Create axios instance with authentication
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_BASE_URL
 });
 
-// Add request interceptor to include auth token
+export const fetchActiveOrdersCount = async () => {
+  try {
+    console.log('🔢 Fetching active orders count');
+    const response = await apiClient.get('/nrActiveOrders');
+    console.log('✅ Active orders count fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching active orders count:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Get client order details (no authentication required)
+export const getClientOrderDetails = async (orderId) => {
+  try {
+    console.log(`🔍 Fetching client order details for #${orderId}`);
+    // Folosim fetch direct pentru a evita interceptor-ul de autentificare
+    const response = await fetch(`http://localhost:8080/api/orders/client/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Client order details fetched successfully:', data);
+    return data;
+  } catch (error) {
+    console.error(`❌ Error fetching client order details for #${orderId}:`, error.message);
+    throw error;
+  }
+};
+
+// Configure interceptors for apiClient
 apiClient.interceptors.request.use(
   (config) => {
     const token = TokenManager.getToken();
@@ -234,18 +268,6 @@ export const canOrderBeDelivered = async (orderId) => {
   }
 };
 
-export const fetchActiveOrdersCount = async () => {
-  try {
-    console.log('📊 Fetching count of active orders');
-    const response = await apiClient.get('/nrActiveOrders');
-    console.log('✅ Active orders count fetched:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Error fetching active orders count:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
 export default {
   fetchAllOrders,
   getOrderById,
@@ -260,5 +282,6 @@ export default {
   getOrderDetails,
   markOrderAsDelivered,
   canOrderBeDelivered,
-  fetchActiveOrdersCount
+  fetchActiveOrdersCount,
+  getClientOrderDetails
 };

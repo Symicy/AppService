@@ -57,9 +57,10 @@ function Orders() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Extrage deviceId direct din URL - elimină necesitatea unui useEffect
+  // Extrage parametrii din URL
   const params = new URLSearchParams(location.search);
   const filteredByDevice = params.get('deviceId');
+  const filteredByOrder = params.get('orderId'); // Nou parametru pentru filtrarea după ID comandă
   
   // Adaugă aceste state-uri pentru paginare
   const [page, setPage] = useState(0);
@@ -738,6 +739,30 @@ const handleMarkAsDelivered = async () => {
               <div>
                 <h5 className="mb-1 text-dark">Filtered View</h5>
                 <p className="mb-0 text-dark">Showing orders containing Device #{filteredByDevice}</p>
+              </div>
+              <button 
+                className="btn ms-auto" 
+                style={{
+                  background: 'transparent', 
+                  border: '1px solid #000', 
+                  color: '#000'
+                }}
+                onClick={() => navigate('/orders')}
+              >
+                <i className="fas fa-times me-2"></i>Clear Filter
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Filtered by Order ID Info */}
+        {filteredByOrder && (
+          <div className="alert mb-4" style={{background: 'rgba(255, 165, 0, 0.15)', border: '1px solid #ffa500'}}>
+            <div className="d-flex align-items-center">
+              <i className="fas fa-qrcode fa-lg me-3 text-dark"></i>
+              <div>
+                <h5 className="mb-1 text-dark">QR Scan View</h5>
+                <p className="mb-0 text-dark">Viewing Order #{filteredByOrder}</p>
               </div>
               <button 
                 className="btn ms-auto" 

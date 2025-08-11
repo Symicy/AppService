@@ -59,7 +59,7 @@ public class OrderSpecification {
             }
             
             // Filtrare după deviceId
-            if (deviceId != null) {
+            if (deviceId != null && query != null) {
                 // Folosim o subquery pentru a verifica dacă comanda are un device cu ID-ul specificat
                 Subquery<Long> deviceSubquery = query.subquery(Long.class);
                 Root<Device> deviceRoot = deviceSubquery.from(Device.class);

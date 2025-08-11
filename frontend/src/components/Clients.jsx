@@ -34,6 +34,7 @@ function Clients() {
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [totalClientCount, setTotalClientCount] = useState(0); // State pentru numărul total de clienți
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -61,6 +62,7 @@ function Clients() {
         setFilteredClients(response.content);
         setTotalPages(response.totalPages);
         setTotalElements(response.totalElements);
+        setTotalClientCount(response.totalElements); // Extrage și salvează numărul total de clienți
       } catch (error) {
         console.error('❌ Error fetching filtered clients:', error);
         setError('Failed to load filtered clients');
@@ -72,23 +74,28 @@ function Clients() {
     // Add a delay to avoid too many calls while typing
     const timeoutId = setTimeout(() => {
       fetchFilteredData();
-    }, 300);
+    }, 500);
     
     return () => clearTimeout(timeoutId);
   }, [searchTerm, filterType, page, size]);
 
-  const fetchClients = async () => {
+  const fetchClients = async (page = 0) => {
     try {
-      setIsLoading(true)
-      setError('')
-      const data = await clientsAPI.fetchAllClients()
-      setClients(data)
-      console.log('✅ Clients loaded:', data.length)
+      setIsLoading(true);
+      const data = await clientsAPI.fetchFilteredClients(searchTerm, filterType, page, size);
+      
+      // Extrage și salvează numărul total de clienți
+      setTotalClientCount(data.totalElements);
+      
+      // Restul logicii pentru setarea datelor paginii
+      setClients(data.content);
+      setTotalPages(data.totalPages);
+      setPage(page);
     } catch (error) {
-      console.error('❌ Error fetching clients:', error)
-      setError('Failed to load clients from server')
+      setError('Failed to load clients');
+      console.error(error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -347,7 +354,7 @@ function Clients() {
                 <div className="d-flex justify-content-between">
                   <div>
                     <h6 className="card-title text-cyan">Total Clients</h6>
-                    <h3 className="mb-0 text-white">{clients.length}</h3>
+                    <h3 className="mb-0 text-white">{totalClientCount}</h3>
                   </div>
                   <div className="align-self-center">
                     <i className="fas fa-users fa-2x text-cyan opacity-75"></i>
@@ -528,33 +535,54 @@ function Clients() {
               Showing {Math.min(page * size + 1, totalElements)} - {Math.min((page + 1) * size, totalElements)} of {totalElements} clients
             </span>
           </div>
-          <div>
+          <div className="d-flex align-items-center">
+            <select 
+              className="form-select form-select-sm form-select-kiva me-3" 
+              style={{width: "80px"}}
+              value={size} 
+              onChange={handleSizeChange}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
             <nav>
-              <ul className="pagination pagination-kiva mb-0">
-                <li className={`page-item ${page === 0 ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => handlePageChange(0)}>
+              <ul className="pagination pagination-kiva mb-0 mt-1">
+                <li className={`page-item ${page === 0 ? 'disabled' : ''} me-1`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => handlePageChange(0)}
+                    disabled={page === 0}
+                  >
                     <i className="fas fa-angle-double-left"></i>
                   </button>
                 </li>
-                <li className={`page-item ${page === 0 ? 'active' : ''}`}>
-                  <button className="page-link" onClick={() => handlePageChange(0)}>
-                    1
+                <li className={`page-item ${page === 0 ? 'disabled' : ''} me-1`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 0}
+                  >
+                    <i className="fas fa-chevron-left"></i>
                   </button>
                 </li>
-                {totalPages > 1 && (
-                  <li className="page-item">
-                    <span className="page-link">...</span>
-                  </li>
-                )}
-                {totalPages > 1 && Array.from({ length: totalPages - 1 }, (_, i) => i + 2).map(pageNumber => (
-                  <li key={pageNumber} className={`page-item ${page === pageNumber - 1 ? 'active' : ''}`}>
-                    <button className="page-link" onClick={() => handlePageChange(pageNumber - 1)}>
-                      {pageNumber}
-                    </button>
-                  </li>
-                ))}
-                <li className={`page-item ${page === totalPages - 1 ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => handlePageChange(totalPages - 1)}>
+                {renderPageNumbers()}
+                <li className={`page-item ${page === totalPages - 1 ? 'disabled' : ''} me-1 ms-1`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page === totalPages - 1}
+                  >
+                    <i className="fas fa-chevron-right"></i>
+                  </button>
+                </li>
+                <li className={`page-item ${page === totalPages - 1 ? 'disabled' : ''} me-1`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => handlePageChange(totalPages - 1)}
+                    disabled={page === totalPages - 1}
+                  >
                     <i className="fas fa-angle-double-right"></i>
                   </button>
                 </li>

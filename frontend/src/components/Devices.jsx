@@ -39,9 +39,10 @@ function Devices() {
   const navigate = useNavigate()
   const location = useLocation()
   
-  // Extrage orderId direct din URL - înlocuiește useEffect-ul pentru filtrul de comenzi
+  // Extrage parametrii din URL
   const params = new URLSearchParams(location.search)
   const filteredByOrder = params.get('orderId')
+  const filteredByDevice = params.get('deviceId')
   
   // Calculează mărcile disponibile cu useMemo - înlocuiește useEffect-ul pentru mărci
   const availableBrands = useMemo(() => {
@@ -231,6 +232,11 @@ function Devices() {
   const filteredDevices = devices.filter(device => {
     // Aplică filtrul pentru comenzi dacă este activ
     if (filteredByOrder && device.order_id !== parseInt(filteredByOrder)) {
+      return false;
+    }
+    
+    // Aplică filtrul pentru device-uri specifice (pentru QR service)
+    if (filteredByDevice && device.id !== parseInt(filteredByDevice)) {
       return false;
     }
     
@@ -445,6 +451,30 @@ function Devices() {
               <div>
                 <h5 className="mb-1 text-dark">Filtered View</h5>
                 <p className="mb-0 text-dark">Showing devices for Order #{filteredByOrder}</p>
+              </div>
+              <button 
+                className="btn ms-auto" 
+                style={{
+                  background: 'transparent', 
+                  border: '2px solid #000', 
+                  color: '#000'
+                }}
+                onClick={() => navigate('/devices')}
+              >
+                <i className="fas fa-times me-2"></i>Clear Filter
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Filtered by Device Info */}
+        {filteredByDevice && (
+          <div className="alert mb-4" style={{background: 'rgba(255, 165, 0, 0.15)', border: '1px solid #ffa500'}}>
+            <div className="d-flex align-items-center">
+              <i className="fas fa-qrcode fa-lg me-3 text-dark"></i>
+              <div>
+                <h5 className="mb-1 text-dark">Service QR View</h5>
+                <p className="mb-0 text-dark">Viewing Device #{filteredByDevice}</p>
               </div>
               <button 
                 className="btn ms-auto" 

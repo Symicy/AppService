@@ -8,6 +8,8 @@ import Users from './components/Users'
 import Login from './components/Login'
 import Clients from './components/Clients'
 import Devices from './components/Devices'
+import ClientOrderDetails from './components/ClientOrderDetails'
+import ServiceDeviceRedirect from './components/ServiceDeviceRedirect'
 import KivaLogo from './poze/3dlogo.png'
 import './App.css'
 import './styles/global.css'
@@ -17,6 +19,7 @@ import './styles/components/cards.css'
 import './styles/components/tables.css'
 import * as clientsAPI from './services/api/clientsAPI';
 import * as ordersAPI from './services/api/ordersAPI';
+import ClientOrder from "./components/ClientOrder.jsx";
 
 // Home component (your original homepage content)
 function Home() {
@@ -288,10 +291,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public route */}
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/q/:token" element={<ClientOrder />} />
+          <Route path="/client-order/:orderId" element={<ClientOrderDetails />} />
+          <Route path="/service-device/:deviceId" element={<ServiceDeviceRedirect />} />
           
-          {/* Protected routes - using your original structure but with ProtectedRoute wrapper */}
+          {/* Protected routes */}
           <Route path="/" element={
             <ProtectedRoute>
               <Home />
@@ -317,7 +323,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Your original placeholder routes */}
           <Route path="/clients" element={
             <ProtectedRoute>
               <Clients/>
