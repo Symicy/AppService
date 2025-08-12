@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { TokenManager } from '../services/api/authAPI';
+import { printDocument } from '../utils/printUtils';
 import KivaLogo from '../poze/3dlogo.png';
 import * as ordersAPI from '../services/api/ordersAPI';
 import * as clientsAPI from '../services/api/clientsAPI';
 import * as orderLogAPI from '../services/api/orderLogAPI';
 import * as devicesAPI from '../services/api/devicesAPI';
+import * as qrAPI from '../services/api/qrAPI';
 import '../styles/global.css';
 import '../styles/components/navbar.css';
 import '../styles/components/buttons.css';
@@ -13,6 +15,7 @@ import '../styles/components/cards.css';
 import '../styles/components/tables.css';
 import '../styles/components/forms.css';
 import '../styles/components/timeline.css';
+import '../styles/components/print-order.css';
 
 function Orders() {
   const [orders, setOrders] = useState([]);
@@ -30,6 +33,10 @@ function Orders() {
   const [orderLogs, setOrderLogs] = useState([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [selectedOrderHistory, setSelectedOrderHistory] = useState(null);
+  
+  // QR Modal state
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedQROrder, setSelectedQROrder] = useState(null);
   
   // State pentru modal adăugare comandă
   const [newOrderForm, setNewOrderForm] = useState({
@@ -376,6 +383,18 @@ function Orders() {
     }
   };
 
+  // Function to open QR modal
+  const openQRModal = async (order) => {
+    try {
+      const orderDetails = await ordersAPI.getOrderDetails(order.id);
+      setSelectedQROrder(orderDetails);
+      setShowQRModal(true);
+    } catch (error) {
+      console.error('Error loading order for QR modal:', error);
+      setError('Failed to load order details for QR codes.');
+    }
+  };
+
   const navigateToNewClient = () => {
     navigate('/clients', { 
       state: { 
@@ -549,6 +568,464 @@ const handleMarkAsDelivered = async () => {
       setIsLoading(false);
     }
   }
+};
+
+// Add this new function to handle printing individual orders
+const handlePrintOrder = async (order) => {
+  try {
+    // Get full order details for printing
+    const orderDetails = await ordersAPI.getOrderDetails(order.id);
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    
+    // Generate the print HTML content
+    const printHTML = generateOrderPrintHTML(orderDetails);
+    
+    // Write the HTML to the new window
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+    
+    // Wait for images to load, then print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    };
+    
+  } catch (error) {
+    console.error('Error printing order:', error);
+    setError('Failed to prepare order for printing. Please try again.');
+  }
+};
+
+// Helper function to generate print HTML
+const generateOrderPrintHTML = (order) => {
+  const formatPrintDate = (date) => {
+    // Formatează data și ora de creație a comenzii
+    const dateObj = new Date(date);
+    return dateObj.toLocaleDateString('ro-RO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  };
+
+  const formatPrintStatus = (status) => {
+    const statusMap = {
+      'PRELUAT': 'Preluată',
+      'IN_LUCRU': 'În lucru',
+      'FINALIZAT': 'Finalizată',
+      'PREDAT': 'Predată'
+    };
+    return statusMap[status] || status;
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Fișă de Recepție - Comandă #${order.id}</title>
+      <style>
+        /* Print styles */
+        @page {
+          size: A4;
+          margin: 2cm 1.5cm;
+        }
+        
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Times New Roman', serif;
+          font-size: 12pt;
+          line-height: 1.5;
+          color: #000;
+          background: #fff;
+        }
+        
+        .print-header {
+          border-bottom: 2px solid #000000;
+          padding-bottom: 15px;
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .print-logo {
+          max-height: 60px;
+          width: auto;
+        }
+        
+        .print-company-info {
+          text-align: right;
+          font-size: 10pt;
+          line-height: 1.3;
+        }
+        
+        .print-title {
+          font-size: 18pt;
+          font-weight: bold;
+          text-align: center;
+          margin: 20px 0;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        
+        .print-order-info {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 30px;
+          margin-bottom: 25px;
+        }
+        
+        .print-info-section {
+          border: 1px solid #ccc;
+          padding: 15px;
+          background: #f9f9f9;
+        }
+        
+        .print-info-title {
+          font-size: 12pt;
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: #000000;
+          border-bottom: 1px solid #000000;
+          padding-bottom: 5px;
+        }
+        
+        .print-info-item {
+          margin-bottom: 8px;
+          display: flex;
+          justify-content: space-between;
+        }
+        
+        .print-info-label {
+          font-weight: bold;
+          color: #000000;
+          min-width: 100px;
+        }
+        
+        .print-info-value {
+          color: #000;
+          flex: 1;
+          text-align: right;
+        }
+        
+        .print-section-title {
+          font-size: 14pt;
+          font-weight: bold;
+          margin-bottom: 10px;
+          padding: 8px 0;
+          border-bottom: 2px solid #000000;
+          text-transform: uppercase;
+        }
+        
+        .print-devices-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 10pt;
+          margin-bottom: 15px;
+        }
+        
+        .print-devices-table th,
+        .print-devices-table td {
+          border: 1px solid #ccc;
+          padding: 8px 6px;
+          text-align: left;
+          vertical-align: top;
+        }
+        
+        .print-devices-table th {
+          background-color: #f0f0f0;
+          font-weight: bold;
+          color: #000000;
+          font-size: 9pt;
+          text-transform: uppercase;
+          border: 1px solid #cccccc;
+        }
+        
+        .print-devices-table td {
+          color: #333;
+        }
+        
+        .device-issue {
+          font-style: italic;
+          font-size: 9pt;
+          color: #666;
+        }
+        
+        .print-terms {
+          margin-top: 20px;
+          border-top: 1px solid #ccc;
+          padding-top: 10px;
+        }
+        
+        .print-terms-title {
+          font-size: 11pt;
+          font-weight: bold;
+          margin-bottom: 8px;
+          color: #000000;
+        }
+        
+        .print-terms-list {
+          font-size: 8pt;
+          line-height: 1.3;
+          color: #333;
+          margin: 0;
+          padding-left: 18px;
+        }
+        
+        .print-terms-list li {
+          margin-bottom: 3px;
+        }
+        
+        .print-signatures {
+          margin-top: 20px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+        
+        .print-signature-box {
+          border: 1px solid #ccc;
+          padding: 10px;
+          min-height: 80px;
+          position: relative;
+        }
+        
+        .print-signature-title {
+          font-size: 10pt;
+          font-weight: bold;
+          margin-bottom: 30px;
+          color: #000000;
+        }
+        
+        .print-signature-line {
+          border-bottom: 1px solid #333333;
+          width: 100%;
+          height: 1px;
+          position: absolute;
+          bottom: 25px;
+        }
+        
+        .print-signature-label {
+          position: absolute;
+          bottom: 10px;
+          font-size: 8pt;
+          color: #666;
+        }
+        
+        .print-footer {
+          margin-top: 15px;
+          border-top: 1px solid #ccc;
+          padding-top: 10px;
+          text-align: center;
+          font-size: 8pt;
+          color: #666;
+        }
+        
+        .print-status-badge {
+          display: inline-block;
+          padding: 2px 6px;
+          border: 1px solid #333333;
+          background-color: #f5f5f5;
+          border-radius: 3px;
+          font-size: 8pt;
+          font-weight: bold;
+          text-transform: uppercase;
+          color: #333333;
+        }
+        
+        .print-text-center {
+          text-align: center;
+        }
+        
+        .print-bold {
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <!-- Print Header -->
+      <div class="print-header">
+        <div>
+          <img src="${KivaLogo}" alt="Kiva Net Service" class="print-logo" />
+        </div>
+        <div class="print-company-info">
+          <div class="print-bold">KIVA NET SERVICE SRL</div>
+          <div>Service și Reparații IT</div>
+          <div>Bulevardul Decebal 7/6, Baia Mare</div>
+          <div>Tel: +40749934941</div>
+          <div>CUI: 37892391 | J24/1213/2017</div>
+        </div>
+      </div>
+
+      <!-- Document Title -->
+      <div class="print-title">
+        Fișă de Recepție - Comandă #${order.id}
+      </div>
+
+      <!-- Order Information -->
+      <div class="print-order-info">
+        <div class="print-info-section">
+          <div class="print-info-title">Informații Comandă</div>
+          <div class="print-info-item">
+            <span class="print-info-label">Număr comandă:</span>
+            <span class="print-info-value">#${order.id}</span>
+          </div>
+          <div class="print-info-item">
+            <span class="print-info-label">Data creație:</span>
+            <span class="print-info-value">${formatPrintDate(order.createdAt)}</span>
+          </div>
+          <div class="print-info-item">
+            <span class="print-info-label">Status:</span>
+            <span class="print-info-value print-status-badge">${formatPrintStatus(order.status)}</span>
+          </div>
+          <div class="print-info-item">
+            <span class="print-info-label">Device-uri:</span>
+            <span class="print-info-value">${order.devices?.length || 0} buc.</span>
+          </div>
+        </div>
+
+        <div class="print-info-section">
+          <div class="print-info-title">Informații Client</div>
+          <div class="print-info-item">
+            <span class="print-info-label">Nume:</span>
+            <span class="print-info-value">${order.client?.name ? `${order.client.name} ${order.client.surname}` : order.clientName || 'N/A'}</span>
+          </div>
+          ${order.client?.cui ? `
+          <div class="print-info-item">
+            <span class="print-info-label">CUI:</span>
+            <span class="print-info-value">${order.client.cui}</span>
+          </div>
+          ` : ''}
+          ${order.client?.phone ? `
+          <div class="print-info-item">
+            <span class="print-info-label">Telefon:</span>
+            <span class="print-info-value">${order.client.phone}</span>
+          </div>
+          ` : ''}
+          ${order.client?.email ? `
+          <div class="print-info-item">
+            <span class="print-info-label">Email:</span>
+            <span class="print-info-value">${order.client.email}</span>
+          </div>
+          ` : ''}
+          <div class="print-info-item">
+            <span class="print-info-label">Cod QR Client:</span>
+            <div class="print-qr-code">
+              <img src="${qrAPI.getClientOrderQRImage(order.id)}" alt="QR Code Client" style="width: 80px; height: 80px; border: 1px solid #ccc;" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Devices Table -->
+      <div class="print-devices-section">
+        <div class="print-section-title">Device-uri Recepționate</div>
+        ${order.devices && order.devices.length > 0 ? `
+          <table class="print-devices-table">
+            <thead>
+              <tr>
+                <th style="width: 5%;">Nr.</th>
+                <th style="width: 12%;">Brand</th>
+                <th style="width: 12%;">Model</th>
+                <th style="width: 12%;">Serie</th>
+                <th style="width: 25%;">Problemă raportată</th>
+                <th style="width: 18%;">Accesorii</th>
+                <th style="width: 8%;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.devices.map((device, index) => `
+                <tr>
+                  <td class="print-text-center print-bold">${index + 1}</td>
+                  <td>${device.brand || 'N/A'}</td>
+                  <td>${device.model || 'N/A'}</td>
+                  <td>${device.serialNumber || 'N/A'}</td>
+                  <td>
+                    <div>${device.issueDescription || device.note || 'Nu a fost specificată'}</div>
+                  </td>
+                  <td>
+                    ${(device.predefinedAccessories && device.predefinedAccessories.length > 0) || device.customAccessories ? `
+                      <div style="font-size: 8pt;">
+                        ${device.predefinedAccessories && device.predefinedAccessories.length > 0 ? 
+                          device.predefinedAccessories.join(', ') : ''}${device.predefinedAccessories && device.predefinedAccessories.length > 0 && device.customAccessories ? ', ' : ''}${device.customAccessories || ''}
+                      </div>
+                    ` : '<span style="font-size: 8pt; color: #999;">-</span>'}
+                  </td>
+                  <td>
+                    <span class="print-status-badge">
+                      ${formatPrintStatus(device.status || order.status)}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : `
+          <div class="print-text-center" style="padding: 20px; font-style: italic;">
+            Nu sunt device-uri în această comandă.
+          </div>
+        `}
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="print-terms">
+        <div class="print-terms-title">Termeni și Condiții</div>
+        <ol class="print-terms-list">
+          <li>Clientul confirmă că device-urile predate corespund descrierii de mai sus.</li>
+          <li>KIVA Service nu este responsabil pentru pierderea datelor. Recomandăm realizarea unui backup înainte de predare.</li>
+          <li>Durata estimată de reparație este de 3-7 zile lucrătoare, în funcție de complexitatea problemei.</li>
+          <li>Clientul va fi contactat telefonic la finalizarea reparației.</li>
+          <li>Device-urile nereclmate în termen de 30 de zile vor fi considerate abandonate.</li>
+          <li>Garantia pentru reparația efectuată este de 30 de zile pentru defectul remediat.</li>
+          <li>Plata se efectuează la ridicarea device-ului reparat.</li>
+          <li>În cazul în care reparația nu poate fi efectuată, se percepe o taxă de diagnosticare de 50 RON.</li>
+        </ol>
+      </div>
+
+      <!-- Signatures -->
+      <div class="print-signatures">
+        <div class="print-signature-box">
+          <div class="print-signature-title">Semnătura Clientului</div>
+          <div class="print-signature-line"></div>
+          <div class="print-signature-label">Semnătura și numele clientului</div>
+        </div>
+
+        <div class="print-signature-box">
+          <div class="print-signature-title">Semnătura Reprezentant KIVA NET SERVICE</div>
+          <div class="print-signature-line"></div>
+          <div class="print-signature-label">Semnătura și numele tehnicianului</div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="print-footer">
+        <div>
+          Acest document constituie dovada recepției device-urilor și acordul pentru serviciile KIVA NET SERVICE.
+        </div>
+        <div style="margin-top: 10px;">
+          KIVA NET SERVICE SRL - Bulevardul Decebal 7/6, Baia Mare | CUI: 37892391 | Tel: +40749934941
+        </div>
+        <div style="margin-top: 5px; font-size: 7pt; color: #666;">
+          Nr. Înmatriculare: J24/1213/2017 | EUID: ROONRC.J24/1213/2017
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
 };
 
   return (
@@ -861,6 +1338,20 @@ const handleMarkAsDelivered = async () => {
                                 title="View Order History"
                               >
                                 <i className="fas fa-history"></i>
+                              </button>
+                              <button 
+                                className="btn btn-kiva-action"
+                                onClick={() => openQRModal(order)}
+                                title="View QR Codes"
+                              >
+                                <i className="fas fa-qrcode"></i>
+                              </button>
+                              <button 
+                                className="btn btn-kiva-action"
+                                onClick={() => handlePrintOrder(order)}
+                                title="Print Order Document"
+                              >
+                                <i className="fas fa-print"></i>
                               </button>
                               <button 
                                 className="btn btn-outline-danger"
@@ -1725,6 +2216,175 @@ const handleMarkAsDelivered = async () => {
                     type="button" 
                     className="btn btn-kiva-outline" 
                     onClick={() => setShowHistoryModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* QR Modal */}
+        {showQRModal && selectedQROrder && (
+          <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content" style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 100%)', border: '2px solid #00ffff'}}>
+                <div className="modal-header" style={{borderBottom: '1px solid #00ffff'}}>
+                  <h5 className="modal-title text-white">
+                    <i className="fas fa-qrcode me-2 text-cyan"></i>
+                    QR Codes - Order #{selectedQROrder.id}
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white" 
+                    onClick={() => setShowQRModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="row">
+                    {/* Client QR Code */}
+                    <div className="col-md-6 mb-4">
+                      <div className="card border-0" style={{background: 'rgba(0, 255, 255, 0.1)', backdropFilter: 'blur(10px)'}}>
+                        <div className="card-header" style={{background: 'linear-gradient(135deg, #00ffff 0%, #0088cc 100%)', color: '#000'}}>
+                          <h6 className="mb-0" style={{color: '#000'}}>
+                            <i className="fas fa-user me-2"></i>
+                            Client QR Code
+                          </h6>
+                        </div>
+                        <div className="card-body text-center">
+                          <img 
+                            src={qrAPI.getClientOrderQRImage(selectedQROrder.id)} 
+                            alt="Client QR Code" 
+                            className="img-fluid mb-3"
+                            style={{maxWidth: '200px', border: '2px solid #00ffff', borderRadius: '8px'}}
+                            onError={(e) => {
+                              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMWExYTFhIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjMDBmZmZmIiBmb250LXNpemU9IjE0cHgiPkVycm9yPC90ZXh0Pgo8L3N2Zz4=';
+                            }}
+                          />
+                          <p className="text-white small mb-3">
+                            Clientul poate scana acest QR pentru a vedea detaliile comenzii
+                          </p>
+                          <div className="btn-group w-100" role="group">
+                            <button 
+                              className="btn btn-kiva-outline btn-sm"
+                              onClick={() => qrAPI.downloadQRImage(
+                                qrAPI.getClientOrderQRImage(selectedQROrder.id), 
+                                `client-order-${selectedQROrder.id}.png`
+                              )}
+                            >
+                              <i className="fas fa-download me-1"></i>
+                              Download
+                            </button>
+                            <button 
+                              className="btn btn-kiva-outline btn-sm"
+                              onClick={() => qrAPI.printQRCode(
+                                qrAPI.getClientOrderQRImage(selectedQROrder.id),
+                                `Client QR - Order #${selectedQROrder.id}`
+                              )}
+                            >
+                              <i className="fas fa-print me-1"></i>
+                              Print
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Service QR Codes */}
+                    <div className="col-md-6">
+                      <div className="card border-0" style={{background: 'rgba(40, 167, 69, 0.1)', backdropFilter: 'blur(10px)'}}>
+                        <div className="card-header" style={{background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)', color: '#000'}}>
+                          <h6 className="mb-0" style={{color: '#000'}}>
+                            <i className="fas fa-tools me-2"></i>
+                            Service QR Codes
+                          </h6>
+                        </div>
+                        <div className="card-body">
+                          {selectedQROrder.devices && selectedQROrder.devices.length > 0 ? (
+                            <div className="row">
+                              {selectedQROrder.devices.map((device, index) => (
+                                <div key={device.id} className="col-12 mb-3">
+                                  <div className="card border-0" style={{background: 'rgba(255, 255, 255, 0.05)'}}>
+                                    <div className="card-body p-2">
+                                      <div className="row align-items-center">
+                                        <div className="col-4 text-center">
+                                          <img 
+                                            src={qrAPI.getServiceDeviceQRImage(device.id)} 
+                                            alt={`Service QR for Device ${device.id}`}
+                                            className="img-fluid"
+                                            style={{maxWidth: '60px', border: '1px solid #00ffff', borderRadius: '4px'}}
+                                            onError={(e) => {
+                                              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjMWExYTFhIi8+Cjx0ZXh0IHg9IjMwIiB5PSIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgZmlsbD0iIzAwZmZmZiIgZm9udC1zaXplPSI4cHgiPkVycm9yPC90ZXh0Pgo8L3N2Zz4=';
+                                            }}
+                                          />
+                                        </div>
+                                        <div className="col-8">
+                                          <h6 className="text-white mb-1">Device #{device.id}</h6>
+                                          <p className="text-cyan small mb-1">{device.brand} {device.model}</p>
+                                          <div className="btn-group btn-group-sm w-100" role="group">
+                                            <button 
+                                              className="btn btn-kiva-outline btn-sm"
+                                              onClick={() => qrAPI.downloadQRImage(
+                                                qrAPI.getServiceDeviceQRImage(device.id), 
+                                                `service-device-${device.id}.png`
+                                              )}
+                                              title="Download QR"
+                                            >
+                                              <i className="fas fa-download"></i>
+                                            </button>
+                                            <button 
+                                              className="btn btn-kiva-outline btn-sm"
+                                              onClick={() => qrAPI.printQRCode(
+                                                qrAPI.getServiceDeviceQRImage(device.id),
+                                                `Service QR - Device #${device.id}`
+                                              )}
+                                              title="Print QR"
+                                            >
+                                              <i className="fas fa-print"></i>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-3">
+                              <i className="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                              <p className="text-white mb-0">No devices found in this order</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer" style={{borderTop: '1px solid #00ffff'}}>
+                  <button 
+                    type="button" 
+                    className="btn btn-kiva-outline me-2" 
+                    onClick={async () => {
+                      try {
+                        await qrAPI.regenerateOrderQRs(selectedQROrder.id);
+                        setSuccessMessage('QR codes regenerated successfully!');
+                        // Refresh the modal
+                        setShowQRModal(false);
+                        setTimeout(() => openQRModal(selectedQROrder), 100);
+                      } catch (error) {
+                        setError('Failed to regenerate QR codes.');
+                      }
+                    }}
+                  >
+                    <i className="fas fa-sync-alt me-1"></i>
+                    Regenerate All
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-kiva-outline" 
+                    onClick={() => setShowQRModal(false)}
                   >
                     Close
                   </button>

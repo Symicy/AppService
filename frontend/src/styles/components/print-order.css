@@ -1,0 +1,447 @@
+/* Kiva Service - Client Order Print Styles */
+
+/* Print-specific variables */
+@media print {
+  :root {
+    /* Black & White Print Colors */
+    --print-primary: #000000;
+    --print-secondary: #333333;
+    --print-accent: #666666;
+    --print-border: #cccccc;
+    --print-bg: #ffffff;
+    --print-cyan-accent: #888888; /* Cyan represented as gray in print */
+  }
+}
+
+/* Hide elements that shouldn't print */
+@media print {
+  .no-print,
+  .btn,
+  .navbar,
+  .breadcrumb,
+  .alert,
+  .tooltip,
+  .popover,
+  .modal,
+  .offcanvas,
+  .dropdown-menu,
+  .pagination,
+  .progress,
+  .spinner-border,
+  .toast,
+  .carousel-control-prev,
+  .carousel-control-next,
+  .carousel-indicators {
+    display: none !important;
+  }
+
+  /* Reset page styling for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+
+  .container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .row {
+    margin: 0 !important;
+  }
+
+  .col, .col-12, .col-md-6, .col-lg-4, .col-lg-8 {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Print-specific order document layout */
+.print-order-document {
+  display: none;
+}
+
+@media print {
+  .print-order-document {
+    display: block !important;
+    page-break-inside: avoid;
+    font-family: 'Times New Roman', serif;
+    color: black;
+    background: white;
+  }
+
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 2cm 1.5cm;
+  }
+
+  /* Header section */
+  .print-header {
+    border-bottom: 2px solid var(--print-primary);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+
+  .print-header::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 30%;
+    height: 2px;
+    background: var(--print-cyan-accent);
+  }
+
+  .print-logo {
+    max-height: 60px;
+    width: auto;
+  }
+
+  .print-company-info {
+    text-align: right;
+    font-size: 9pt;
+    line-height: 1.2;
+  }
+
+  .print-title {
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--print-primary);
+  }
+
+  /* Order information section */
+  .print-order-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 25px;
+    page-break-inside: avoid;
+  }
+
+  .print-info-section {
+    border: 1px solid var(--print-border);
+    padding: 15px;
+    background: #f9f9f9;
+  }
+
+  .print-info-title {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--print-primary);
+    border-bottom: 1px solid var(--print-border);
+    padding-bottom: 5px;
+  }
+
+  .print-info-item {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .print-info-label {
+    font-weight: bold;
+    color: var(--print-secondary);
+    min-width: 100px;
+  }
+
+  .print-info-value {
+    color: var(--print-primary);
+    flex: 1;
+    text-align: right;
+  }
+
+  .print-qr-code {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+  }
+
+  /* Device information table */
+  .print-devices-section {
+    margin-bottom: 25px;
+    page-break-inside: avoid;
+  }
+
+  .print-section-title {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--print-primary);
+    text-transform: uppercase;
+    color: var(--print-primary);
+    position: relative;
+  }
+
+  .print-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: var(--print-cyan-accent);
+  }
+
+  .print-devices-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin-bottom: 15px;
+  }
+
+  .print-devices-table th,
+  .print-devices-table td {
+    border: 1px solid var(--print-border);
+    padding: 6px 4px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .print-devices-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    color: var(--print-primary);
+    font-size: 8pt;
+    text-transform: uppercase;
+  }
+
+  .print-devices-table td {
+    color: var(--print-secondary);
+  }
+
+  .device-issue {
+    font-style: italic;
+    font-size: 8pt;
+    color: var(--print-accent);
+  }
+
+  /* Terms and conditions */
+  .print-terms {
+    margin-top: 20px;
+    page-break-inside: avoid;
+    border-top: 1px solid var(--print-border);
+    padding-top: 10px;
+  }
+
+  .print-terms-title {
+    font-size: 11pt;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--print-primary);
+  }
+
+  .print-terms-list {
+    font-size: 8pt;
+    line-height: 1.3;
+    color: var(--print-secondary);
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .print-terms-list li {
+    margin-bottom: 3px;
+  }
+
+  /* Signature section */
+  .print-signatures {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    page-break-inside: avoid;
+  }
+
+  .print-signature-box {
+    border: 1px solid var(--print-border);
+    padding: 20px;
+    min-height: 120px;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  .print-signature-title {
+    font-size: 10pt;
+    font-weight: bold;
+    margin-bottom: 50px;
+    color: var(--print-primary);
+  }
+
+  .print-signature-line {
+    border-bottom: 1px solid var(--print-secondary);
+    height: 1px;
+    position: absolute;
+    bottom: 40px;
+    left: 10px;
+    right: 30px;
+  }
+
+  .print-signature-label {
+    position: absolute;
+    bottom: 20px;
+    left: 10px;
+    right: 30px;
+    font-size: 8pt;
+    color: var(--print-accent);
+    text-align: center;
+  }
+
+  /* Footer */
+  .print-footer {
+    margin-top: 15px;
+    border-top: 1px solid var(--print-border);
+    padding-top: 10px;
+    text-align: center;
+    font-size: 8pt;
+    color: var(--print-secondary);
+    line-height: 1.3;
+  }
+
+  /* Print button (visible only on screen) */
+  .print-button-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+
+  .print-button {
+    background: var(--print-primary) !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 5px !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .print-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4) !important;
+  }
+
+  /* Status badge for print */
+  .print-status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border: 1px solid var(--print-secondary);
+    border-radius: 3px;
+    font-size: 9pt;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  /* Additional spacing and formatting */
+  .print-spacer {
+    height: 15px;
+  }
+
+  .print-text-center {
+    text-align: center;
+  }
+
+  .print-text-right {
+    text-align: right;
+  }
+
+  .print-bold {
+    font-weight: bold;
+  }
+
+  .print-italic {
+    font-style: italic;
+  }
+
+  /* Page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+}
+
+/* Screen-only styles for print preview */
+@media screen {
+  .print-order-document {
+    display: none;
+    max-width: 210mm;
+    margin: 20px auto;
+    padding: 20mm 15mm;
+    background: white;
+    color: black;
+    font-family: 'Times New Roman', serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    min-height: 297mm; /* A4 height */
+  }
+
+  .print-preview-mode .print-order-document {
+    display: block;
+  }
+
+  .print-preview-mode .screen-only {
+    display: none;
+  }
+
+  .print-button-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+
+  .print-button {
+    background: var(--print-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-family: var(--font-primary);
+  }
+
+  .print-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
+  }
+
+  .preview-button {
+    background: var(--print-secondary);
+    color: white;
+    border: 1px solid var(--print-border);
+    margin-right: 10px;
+  }
+}

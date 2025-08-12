@@ -1,6 +1,6 @@
 package com.example.backend.domain;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +72,14 @@ public class Order {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
+
+    // QR Code fields
+    @Column(name = "client_qr_link", length = 500)
+    private String clientQrLink;
+
+    @Column(name = "client_qr_path", length = 500)
+    private String clientQrPath;
 
     @JsonProperty("clientId")
     public Long getClientId() {

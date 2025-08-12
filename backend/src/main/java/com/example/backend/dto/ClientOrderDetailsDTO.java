@@ -1,6 +1,6 @@
 package com.example.backend.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ClientOrderDetailsDTO {
@@ -8,7 +8,7 @@ public class ClientOrderDetailsDTO {
     private String clientName;
     private String clientPhone;
     private String clientEmail;
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     private String status;
     private String notes;
     private List<DeviceDetailsDTO> devices;
@@ -17,7 +17,7 @@ public class ClientOrderDetailsDTO {
     public ClientOrderDetailsDTO() {}
     
     public ClientOrderDetailsDTO(Long id, String clientName, String clientPhone, String clientEmail, 
-                               LocalDate createdAt, String status, String notes, List<DeviceDetailsDTO> devices) {
+                               LocalDateTime createdAt, String status, String notes, List<DeviceDetailsDTO> devices) {
         this.id = id;
         this.clientName = clientName;
         this.clientPhone = clientPhone;
@@ -61,11 +61,11 @@ public class ClientOrderDetailsDTO {
         this.clientEmail = clientEmail;
     }
     
-    public LocalDate getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDate createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
     
