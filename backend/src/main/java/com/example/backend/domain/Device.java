@@ -76,6 +76,13 @@ public class Device {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    // QR Code fields for service
+    @Column(name = "service_qr_link", length = 500)
+    private String serviceQrLink;
+
+    @Column(name = "service_qr_path", length = 500)
+    private String serviceQrPath;
+
     @JsonProperty("order_id")
     public Long getOrderId() {
         return order != null ? order.getId() : null;

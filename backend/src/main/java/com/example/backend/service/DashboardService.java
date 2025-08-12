@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -162,13 +163,17 @@ public class DashboardService {
                 LocalDate startOfMonth = monthDate.withDayOfMonth(1);
                 LocalDate endOfMonth = monthDate.withDayOfMonth(monthDate.lengthOfMonth());
                 
+                // Convert to LocalDateTime for repository queries
+                LocalDateTime startDateTime = startOfMonth.atStartOfDay();
+                LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+                
                 // Count completed orders in this month (using order status)
                 long completedCount = orderRepo.countByStatusAndCreatedAtBetween(
-                    "PREDAT", startOfMonth, endOfMonth);
+                    "PREDAT", startDateTime, endDateTime);
                 completedData.add((int) completedCount);
                 
                 // Count all new orders in this month
-                long newOrdersCount = orderRepo.countByCreatedAtBetween(startOfMonth, endOfMonth);
+                long newOrdersCount = orderRepo.countByCreatedAtBetween(startDateTime, endDateTime);
                 newOrdersData.add((int) newOrdersCount);
             }
             

@@ -24,6 +24,7 @@ import com.example.backend.dto.OrderDetailDTO;
 import com.example.backend.dto.OrderListDTO;
 import com.example.backend.dto.ClientOrderDetailsDTO;
 import com.example.backend.service.OrderService;
+import com.example.backend.service.QrService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OrderResource {
     private final OrderService orderService;
+    private final QrService qrService;
 
     // @PreAuthorize("hasRole('ADMIN')")
     // @PostMapping("/add")
@@ -46,25 +48,18 @@ public class OrderResource {
     public ResponseEntity<Order> addOrder(@RequestBody Order order) {
         Order savedOrder = orderService.addOrder(order);
 
-        // Generează QR pentru client - cu toate detaliile comenzii
-        String clientQrLink = "http://localhost:5173/client-order/" + savedOrder.getId();
-        
         try {
-            // QR pentru client
-            String clientQrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\client-order-" + savedOrder.getId() + ".png";
-            com.example.backend.util.QrGenerator.generateQrCode(clientQrLink, clientQrPath);
+            // Generate QR codes using QrService
+            qrService.generateClientOrderQR(savedOrder);
+            qrService.generateServiceQRsForOrder(savedOrder);
             
-            // Generează QR pentru fiecare device pentru service/technician
-            if (savedOrder.getDevices() != null) {
-                for (var device : savedOrder.getDevices()) {
-                    String serviceQrLink = "http://localhost:5173/service-device/" + device.getId();
-                    String serviceQrPath = "C:\\Users\\alxsi\\Desktop\\QrCodes\\service-device-" + device.getId() + ".png";
-                    com.example.backend.util.QrGenerator.generateQrCode(serviceQrLink, serviceQrPath);
-                }
-            }
+            // Update order with QR information
+            savedOrder = orderService.updateOrder(savedOrder.getId(), savedOrder);
+            
+            log.info("Successfully generated QR codes for order {}", savedOrder.getId());
             
         } catch (Exception e) {
-            log.error("Eroare la generarea codurilor QR pentru comanda {}", savedOrder.getId(), e);
+            log.error("Error generating QR codes for order {}", savedOrder.getId(), e);
         }
 
         return ResponseEntity.created(URI.create("/api/orders/add/" + savedOrder.getId()))
