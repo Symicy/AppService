@@ -1,0 +1,2 @@
+-- This script is intentionally left empty because the 'hostname' column already exists.
+-- This file serves to mark migration V002 as successful in the Flyway schema history.

@@ -16,11 +16,13 @@ const customStyles = `
     transition: all 0.2s ease-in-out;
   }
   .cursor-pointer:hover {
-    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 255, 255, 0.3);
   }
   .clickable-badge:hover {
     transform: scale(1.05);
+  }
+  .dropdown-menu {
+    z-index: 1050 !important;
   }
 `
 
@@ -508,6 +510,7 @@ function Devices() {
                       <th>ID</th>
                       <th>Brand / Model</th>
                       <th>Serial Number</th>
+                      <th>Hostname</th>
                       <th>Status</th>
                       <th>ToDo</th>
                       <th>Accessories</th>
@@ -535,6 +538,9 @@ function Devices() {
                           </td>
                           <td className="text-cyan">
                             {device.serialNumber || 'Not specified'}
+                          </td>
+                          <td>
+                            {device.hostname}
                           </td>
                           <td>
                             {getStatusBadge(device.status)}
@@ -615,7 +621,7 @@ function Devices() {
                               </button>
                               
                               {/* Buton nou pentru schimbarea rapidă a statusului */}
-                              <div className="dropdown">
+                              <div className="btn-group btn-group-sm" role="group" style={{ position: 'static' }}>
                                 <button 
                                   className="btn btn-kiva-action dropdown-toggle"
                                   type="button"
@@ -626,7 +632,7 @@ function Devices() {
                                 >
                                   <i className="fas fa-tasks"></i>
                                 </button>
-                                <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby={`statusDropdown-${device.id}`}>
+                                <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby={`statusDropdown-${device.id}`} style={{ zIndex: 9999 }}>
                                   <li><h6 className="dropdown-header">Change Status</h6></li>
                                   <li>
                                     <button 
@@ -777,6 +783,19 @@ function Devices() {
                             </div>
                             <div className="col-md-6 mb-3">
                               <label className="form-label text-cyan fw-bold">
+                                <i className="fas fa-desktop me-2"></i>Hostname
+                              </label>
+                              <input 
+                                type="text" 
+                                className="form-control form-control-kiva" 
+                                value={selectedDevice.hostname || ''}
+                                onChange={(e) => setSelectedDevice({...selectedDevice, hostname: e.target.value})}
+                              />
+                            </div>
+                          </div>
+                          <div className="row">
+                            <div className="col-md-6 mb-3">
+                              <label className="form-label text-cyan fw-bold">
                                 <i className="fas fa-calendar-alt me-2"></i>Received Date
                               </label>
                               <input 
@@ -790,8 +809,6 @@ function Devices() {
                                 <small className="text-muted">Received date cannot be changed</small>
                               )}
                             </div>
-                          </div>
-                          <div className="row">
                             <div className="col-md-6 mb-3">
                               <label className="form-label text-cyan fw-bold">
                                 <i className="fas fa-tasks me-2"></i>Status
@@ -808,6 +825,8 @@ function Devices() {
                                 <option value="PREDAT">Predat</option>
                               </select>
                             </div>
+                          </div>
+                          <div className="row">
                             <div className="col-md-6 mb-3">
                               <label className="form-label text-cyan fw-bold">
                                 <i className="fas fa-clipboard-list me-2"></i>Order

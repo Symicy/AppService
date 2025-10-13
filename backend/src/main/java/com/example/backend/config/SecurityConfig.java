@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.backend.security.JwtAuthFilter;
+import com.example.backend.security.RateLimitFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -28,6 +29,9 @@ public class SecurityConfig {
     @Autowired
     @Lazy
     private JwtAuthFilter jwtAuthFilter;
+    
+    @Autowired
+    private RateLimitFilter rateLimitFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -56,12 +60,19 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers
+                .xssProtection(xss -> xss.disable())
+                .contentTypeOptions(contentType -> contentType.disable())
+                .frameOptions(frame -> frame.deny())
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/users/login", "/api/users/me").permitAll()
                 .requestMatchers("/api/orders/client/**").permitAll()
                 .requestMatchers("/api/qr/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

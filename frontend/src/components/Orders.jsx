@@ -53,6 +53,7 @@ function Orders() {
     note: '',
     credential: '',
     licenseKey: '',
+    hostname: '',
     status: 'PRELUAT',
     predefinedAccessories: [],
     customAccessories: '',
@@ -141,6 +142,7 @@ function Orders() {
       note: '',
       credential: '',
       licenseKey: '',
+      hostname: '',
       status: 'PRELUAT',
       predefinedAccessories: [],
       customAccessories: '',
@@ -1661,6 +1663,17 @@ const generateOrderPrintHTML = (order) => {
                               onChange={(e) => setNewDevice({...newDevice, licenseKey: e.target.value})}
                             />
                           </div>
+                          {clients.find(c => c.id == newOrderForm.clientId)?.cui && (
+                            <div className="col-md-4 mb-3">
+                              <label className="form-label text-cyan">Hostname</label>
+                              <input 
+                                type="text" 
+                                className="form-control form-control-kiva" 
+                                value={newDevice.hostname}
+                                onChange={(e) => setNewDevice({...newDevice, hostname: e.target.value})}
+                              />
+                            </div>
+                          )}
                           <div className="col-md-4 mb-3">
                             <label className="form-label text-cyan">Note</label>
                             <input 

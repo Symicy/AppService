@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import Orders from './components/Orders'
 import Dashboard from './components/Dashboard'
 import Users from './components/Users'
@@ -288,55 +289,57 @@ function Home() {
 // Main App with Router and AuthProvider (keeping all your original routes)
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/q/:token" element={<ClientOrder />} />
-          <Route path="/client-order/:orderId" element={<ClientOrderDetails />} />
-          <Route path="/service-device/:deviceId" element={<ServiceDeviceRedirect />} />
-          
-          {/* Protected routes */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/orders" element={
-            <ProtectedRoute>
-              <Orders />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          
-          {/* Admin-only route */}
-          <Route path="/users" element={
-            <ProtectedRoute requiredRole="ADMIN">
-              <Users />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/clients" element={
-            <ProtectedRoute>
-              <Clients/>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/devices" element={
-            <ProtectedRoute>
-              <Devices />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/q/:token" element={<ClientOrder />} />
+            <Route path="/client-order/:orderId" element={<ClientOrderDetails />} />
+            <Route path="/service-device/:deviceId" element={<ServiceDeviceRedirect />} />
+            
+            {/* Protected routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/orders" element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin-only route */}
+            <Route path="/users" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Users />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/clients" element={
+              <ProtectedRoute>
+                <Clients/>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/devices" element={
+              <ProtectedRoute>
+                <Devices />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

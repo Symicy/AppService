@@ -10,10 +10,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -70,6 +70,9 @@ public class Device {
     // License key for the device, if applicable
     @Column(name = "license_key", length = 255)
     private String licenseKey;
+
+    @Column(name = "hostname", length = 100)
+    private String hostname;
 
     @ManyToOne
     @JsonBackReference("order-devices")
