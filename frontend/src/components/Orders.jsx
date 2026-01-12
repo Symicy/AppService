@@ -8,6 +8,8 @@ import * as clientsAPI from '../services/api/clientsAPI';
 import * as orderLogAPI from '../services/api/orderLogAPI';
 import * as devicesAPI from '../services/api/devicesAPI';
 import * as qrAPI from '../services/api/qrAPI';
+import { createOrdersWsClient } from '../services/api/wsClient';
+import LoadingSkeleton from './LoadingSkeleton';
 import '../styles/global.css';
 import '../styles/components/navbar.css';
 import '../styles/components/buttons.css';
@@ -45,7 +47,6 @@ function Orders() {
     devices: []
   });
 
-  // Pentru a adăuga un nou dispozitiv la comandă
   const [newDevice, setNewDevice] = useState({
     brand: '',
     model: '',
@@ -206,6 +207,15 @@ function Orders() {
         setIsLoading(false);
       }
     };
+
+  useEffect(() => {
+    const client = createOrdersWsClient(() => {
+      dataFetchedRef.current = false;
+      fetchFilteredData();
+    });
+    client.activate();
+    return () => client.deactivate();
+  }, []);
   const handleRemoveDeviceFromOrder = (index) => {
     const updatedDevices = [...newOrderForm.devices];
     updatedDevices.splice(index, 1);
@@ -1262,10 +1272,7 @@ const generateOrderPrintHTML = (order) => {
         <div className="card card-kiva">
           <div className="card-body">
             {isLoading ? (
-              <div className="text-center py-5">
-                <i className="fas fa-spinner fa-spin fa-3x text-cyan"></i>
-                <p className="mt-3 text-white">Loading orders...</p>
-              </div>
+              <LoadingSkeleton rows={size} columns={6} />
             ) : (
               <div className="table-responsive">
                 <table className="table table-hover table-kiva">

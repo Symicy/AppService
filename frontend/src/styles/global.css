@@ -380,6 +380,23 @@ tr {
   width: 90%;
 }
 
+.skeleton-title {
+  height: 28px;
+  width: 60%;
+}
+
+.skeleton-icon {
+  background: linear-gradient(90deg, rgba(0, 255, 255, 0.1) 25%, rgba(0, 255, 255, 0.2) 50%, rgba(0, 255, 255, 0.1) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 120px;
+  border-radius: 8px;
+}
+
 @keyframes loading {
   0% {
     background-position: 200% 0;

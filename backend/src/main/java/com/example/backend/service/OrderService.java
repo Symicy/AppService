@@ -1,22 +1,25 @@
 package com.example.backend.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import com.example.backend.domain.Client;
 import com.example.backend.domain.Order;
 import com.example.backend.domain.OrderLog;
 import com.example.backend.dto.OrderDetailDTO;
+import com.example.backend.dto.OrderEventMessage;
 import com.example.backend.repo.OrderRepo;
 import com.example.backend.specification.OrderSpecification;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -27,6 +30,8 @@ public class OrderService {
     private final OrderLogService orderLogService;
     private final UserService userService;
     private final ClientService clientService; // Adaugă această dependență
+    private final WhatsAppNotificationService whatsAppNotificationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public Order addOrder(Order order) {
         log.info("Adding new order for client ID: {}", order.getClient().getId());
@@ -55,6 +60,8 @@ public class OrderService {
         orderLog.setMessage("Order created with " + savedOrder.getDevices().size() + 
                            " device(s) for client " + clientInfo);
         orderLogService.addOrderLog(orderLog);
+
+        notifyOrderEvent("created", savedOrder.getId());
         
         return savedOrder;
     }
@@ -77,6 +84,7 @@ public class OrderService {
         }
         orderRepo.deleteById(id);
         log.info("Order with ID: {} deleted successfully", id);
+        notifyOrderEvent("deleted", id);
     }
 
     // Modifică metoda updateOrder pentru a adăuga un log
@@ -115,6 +123,7 @@ public class OrderService {
                     orderLogService.addOrderLog(orderLog);
                     
                     log.info("Order with ID: {} updated successfully", id);
+                    notifyOrderEvent("updated", savedOrder.getId());
                     return savedOrder;
                 })  
                 .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
@@ -165,6 +174,18 @@ public class OrderService {
                         orderLog.setMessage("Status changed from '" + oldStatus + "' to '" + status + "'");
                         orderLogService.addOrderLog(orderLog);
                         
+                        // Send WhatsApp notification if order is completed
+                        if ("FINALIZAT".equalsIgnoreCase(status)) {
+                            try {
+                                log.info("Sending WhatsApp notification for completed order {}", id);
+                                whatsAppNotificationService.sendOrderCompletionNotification(savedOrder);
+                            } catch (Exception e) {
+                                // Log error but don't fail the status update
+                                log.error("Failed to send WhatsApp notification for order {}: {}", id, e.getMessage(), e);
+                            }
+                        }
+                        
+                        notifyOrderEvent("status-updated", savedOrder.getId());
                         return savedOrder;
                     }
                     
@@ -207,6 +228,7 @@ public class OrderService {
                     orderLogService.addOrderLog(orderLog);
                     
                     log.info("Order marked as delivered for order ID: {}", id);
+                    notifyOrderEvent("delivered", savedOrder.getId());
                     return savedOrder;
                 })
                 .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
@@ -224,5 +246,9 @@ public class OrderService {
     public Long getActiveOrdersCount() {
         log.info("Fetching count of active orders");
         return orderRepo.countByStatusNotIn(List.of("ANULAT", "PREDAT"));
+    }
+
+    private void notifyOrderEvent(String type, Long orderId) {
+        messagingTemplate.convertAndSend("/topic/orders", new OrderEventMessage(type, orderId));
     }
 }

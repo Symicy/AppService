@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import KivaLogo from '../poze/3dlogo.png'
 import * as clientsAPI from '../services/api/clientsAPI'
+import LoadingSkeleton from './LoadingSkeleton'
 import '../styles/global.css'
 import '../styles/components/navbar.css'
 import '../styles/components/buttons.css'
@@ -437,10 +438,7 @@ function Clients() {
         <div className="card card-kiva">
           <div className="card-body">
             {isLoading ? (
-              <div className="text-center py-5">
-                <i className="fas fa-spinner fa-spin fa-3x text-cyan"></i>
-                <p className="mt-3 text-white">Loading clients...</p>
-              </div>
+              <LoadingSkeleton rows={size} columns={7} />
             ) : (
               <div className="table-responsive">
                 <table className="table table-hover table-kiva">

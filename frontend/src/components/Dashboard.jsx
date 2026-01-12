@@ -15,6 +15,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2'
 import KivaLogo from '../poze/3dlogo.png'
 import { dashboardAPI } from '../services/api/dashboardAPI'
+import LoadingSkeleton from './LoadingSkeleton'
 import '../styles/global.css'
 import '../styles/components/navbar.css'
 import '../styles/components/buttons.css'
@@ -285,10 +286,7 @@ function Dashboard() {
 
         {/* Loading State */}
         {isLoading ? (
-          <div className="text-center py-5">
-            <i className="fas fa-spinner fa-spin fa-3x text-cyan"></i>
-            <p className="mt-3 text-white">Loading dashboard...</p>
-          </div>
+          <LoadingSkeleton type="dashboard" />
         ) : (
           <>
         {/* Main Stats Cards */}

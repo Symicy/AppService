@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import KivaLogo from '../poze/3dlogo.png'
 import * as devicesAPI from '../services/api/devicesAPI'
+import LoadingSkeleton from './LoadingSkeleton'
 import '../styles/global.css'
 import '../styles/components/navbar.css'
 import '../styles/components/buttons.css'
@@ -497,10 +498,7 @@ function Devices() {
         <div className="card card-kiva">
           <div className="card-body">
             {isLoading ? (
-              <div className="text-center py-5">
-                <i className="fas fa-spinner fa-spin fa-3x text-cyan"></i>
-                <p className="mt-3 text-white">Loading devices...</p>
-              </div>
+              <LoadingSkeleton rows={10} columns={11} />
             ) : (
               <div className="table-responsive"
               style={{ minHeight: filteredDevices.length <= 3 ? '300px' : 'auto' }}>

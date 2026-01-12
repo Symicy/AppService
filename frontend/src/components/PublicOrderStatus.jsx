@@ -6,6 +6,27 @@ import '../styles/global.css'
 import '../styles/components/cards.css'
 import '../styles/components/badges.css'
 
+// Simple order detail skeleton
+const OrderDetailSkeleton = () => (
+  <div className="min-vh-100" style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)'}}>
+    <div className="container py-5">
+      <div className="text-center mb-4">
+        <div className="skeleton skeleton-title mx-auto mb-3" style={{width: '200px', height: '40px'}}></div>
+        <div className="skeleton skeleton-text mx-auto" style={{width: '300px'}}></div>
+      </div>
+      <div className="card" style={{ background: 'rgba(30, 30, 30, 0.9)', border: '1px solid rgba(0, 255, 255, 0.3)', maxWidth: '600px', margin: '0 auto' }}>
+        <div className="card-body p-4">
+          <div className="skeleton skeleton-header mb-4" style={{width: '60%'}}></div>
+          <div className="skeleton skeleton-text mb-3"></div>
+          <div className="skeleton skeleton-text mb-3"></div>
+          <div className="skeleton skeleton-text mb-3" style={{width: '70%'}}></div>
+          <div className="skeleton skeleton-title mt-4" style={{width: '40%', height: '35px'}}></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 function PublicOrderStatus() {
   const { orderId } = useParams()
   const [order, setOrder] = useState(null)
@@ -54,16 +75,7 @@ function PublicOrderStatus() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-vh-100" style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)'}}>
-        <div className="d-flex align-items-center justify-content-center min-vh-100">
-          <div className="text-center">
-            <i className="fas fa-spinner fa-spin fa-3x text-cyan mb-3"></i>
-            <h4 className="text-white">Loading Order Details...</h4>
-          </div>
-        </div>
-      </div>
-    )
+    return <OrderDetailSkeleton />;
   }
 
   if (error || !order) {

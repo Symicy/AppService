@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { authAPI } from '../services/api/authAPI' // Add this import
 import KivaLogo from '../poze/3dlogo.png'
+import LoadingSkeleton from './LoadingSkeleton'
 import '../styles/global.css'
 import '../styles/components/navbar.css'
 import '../styles/components/buttons.css'
@@ -263,12 +264,8 @@ function Users() {
   // Show loading while fetching users
   if (isLoadingUsers) {
     return (
-      <div className="d-flex align-items-center justify-content-center min-vh-100" 
-           style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)'}}>
-        <div className="text-center">
-          <i className="fas fa-spinner fa-spin fa-3x text-cyan mb-3"></i>
-          <h4 className="text-white">Loading Users...</h4>
-        </div>
+      <div style={{background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', minHeight: '100vh'}}>
+        <LoadingSkeleton type="userList" />
       </div>
     )
   }

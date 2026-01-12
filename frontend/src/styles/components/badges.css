@@ -1,17 +1,19 @@
 @import '../variables.css';
 
 .badge-kiva-individual {
-  background: var(--gradient-primary);
-  color: var(--kiva-black);
+  background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%) !important;
+  color: white !important;
   font-weight: bold;
   font-family: var(--font-primary);
+  padding: 0.5em 0.8em;
 }
 
 .badge-kiva-company {
-  background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-  color: var(--kiva-black);
+  background: linear-gradient(135deg, #6f42c1 0%, #9b59b6 100%) !important;
+  color: white !important;
   font-weight: bold;
   font-family: var(--font-primary);
+  padding: 0.5em 0.8em;
 }
 
 /* Override Bootstrap badge colors for better visibility */
