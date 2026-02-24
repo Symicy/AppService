@@ -89,7 +89,7 @@ public class WhatsAppNotificationService {
      * Send template message via WhatsApp Cloud API
      */
     private void sendTemplateMessage(String recipientPhone, String clientName, String orderId, String deviceNames) {
-        String url = String.format("%s/%s/messages", whatsappApiUrl, phoneNumberId);
+        String url = "%s/%s/messages".formatted(whatsappApiUrl, phoneNumberId);
 
         // Build request headers
         HttpHeaders headers = new HttpHeaders();

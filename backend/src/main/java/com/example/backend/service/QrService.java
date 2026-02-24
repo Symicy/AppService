@@ -3,7 +3,6 @@ package com.example.backend.service;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -95,7 +94,7 @@ public class QrService {
     public void regenerateQRIfMissing(Order order) {
         // Check client QR
         if (order.getClientQrPath() != null) {
-            if (!Files.exists(Paths.get(order.getClientQrPath()))) {
+            if (!Files.exists(Path.of(order.getClientQrPath()))) {
                 log.warn("Client QR file missing for order {}, regenerating...", order.getId());
                 generateClientOrderQR(order);
             }
@@ -105,7 +104,7 @@ public class QrService {
         if (order.getDevices() != null) {
             for (Device device : order.getDevices()) {
                 if (device.getServiceQrPath() != null) {
-                    if (!Files.exists(Paths.get(device.getServiceQrPath()))) {
+                    if (!Files.exists(Path.of(device.getServiceQrPath()))) {
                         log.warn("Service QR file missing for device {}, regenerating...", device.getId());
                         generateServiceDeviceQR(device);
                     }
@@ -121,7 +120,7 @@ public class QrService {
         try {
             // Create date-based subdirectory
             String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-            Path categoryPath = Paths.get(qrBasePath, category, dateFolder);
+            Path categoryPath = Path.of(qrBasePath, category, dateFolder);
             
             // Create directories if they don't exist
             Files.createDirectories(categoryPath);
@@ -131,7 +130,7 @@ public class QrService {
         } catch (Exception e) {
             log.error("Error creating QR path for {}/{}", category, fileName, e);
             // Fallback to simple path
-            return Paths.get(qrBasePath, fileName).toString();
+            return Path.of(qrBasePath, fileName).toString();
         }
     }
     
@@ -140,7 +139,7 @@ public class QrService {
      */
     public byte[] getQRFile(String qrPath) {
         try {
-            Path path = Paths.get(qrPath);
+            Path path = Path.of(qrPath);
             if (Files.exists(path)) {
                 return Files.readAllBytes(path);
             }
@@ -176,7 +175,7 @@ public class QrService {
     
     private void deleteQRFile(String qrPath) {
         try {
-            Path path = Paths.get(qrPath);
+            Path path = Path.of(qrPath);
             if (Files.exists(path)) {
                 Files.delete(path);
                 log.info("Deleted QR file: {}", qrPath);
